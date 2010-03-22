@@ -26,10 +26,14 @@ def convolute(simplifiedMatrix, width, height):
             value = 0.0
             for j in (-1, 0, 1):
                 for i in (-1, 0, 1):
-                    value += simplifiedMatrix.get((x, y), 1.0)
+                    value += simplifiedMatrix.get((x+i, y+j), 1.0)
             value /= 9.0
             if value >= 0.7:
                 value = 1.0
             total += 1.0 - value
+#    print "+",total
     total /= len(simplifiedMatrix)
+#    print len(simplifiedMatrix)
+#    print "-",total
+#    print "*****"
     return total 

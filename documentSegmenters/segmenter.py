@@ -29,7 +29,7 @@ class Segmenter:
 class Segmenter_RegExp(Segmenter):
     def process(self, document):
         import re
-        text = document.getFilteredContent()
+        text = document.getContent()
         regExp = re.compile(self.getRegExp(), re.M)
         start = 0
         document.initSegmentation()

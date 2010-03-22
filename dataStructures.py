@@ -64,11 +64,27 @@ class Document:
     def setSegmentation(self, segmentation):
         self._segmentation = segmentation
 
+    def setContent(self,content) :
+      self._content = content
+
+    def setFileName(self,fileName) :
+      self._fileName = fileName
+
     def getSegmentation(self):
         return self._segmentation
 
     def __str__(self):
         return self._fileName
+
+    def str_verbose(self):
+        res  = self._fileName + "\n"
+        res += self._content + "\n"
+#        res += self._filteredContent + "\n"
+        if self._segmentation != None :
+          for segment in self._segmentation :
+            res += "  "+str(segment) + "\n"
+
+        return res
 
     def __repr__(self):
         return "Document(%s)"%self._fileName
@@ -91,8 +107,12 @@ class Segment:
         self._offset = offset
         self._length = length
 
+    def __str__(self) :
+      return "[" + self.getContent() + "]"
+
     def getContent(self):
-        text = self._document.getFilteredContent()
+        #text = self._document.getFilteredContent()
+        text = self._document.getContent()
         return text[self._offset:self._offset+self._length]
 
 

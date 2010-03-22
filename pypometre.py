@@ -20,7 +20,7 @@ def main():
     documentFilter = getClassOf("documentFilters", "t")(context)
     documentSegmenter = getClassOf("documentSegmenters", "newline")(context)
     segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
-    #segmentDistance = getClassOf("segmentDistances", "equals")(context) #("levenshtein")(context)
+    #segmentDistance = getClassOf("segmentDistances", "equals")(context)
     documentDistance = getClassOf("documentDistances", "filteredMunkres")(context)
     resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
 
@@ -45,14 +45,17 @@ def main():
         segmented_document = documentSegmenter(document)
         segmented_corpus.append(segmented_document)
 
+    for document in segmented_corpus :
+      print document.str_verbose()
+
     print "Building segments distances matrices"
     documents_distances = DistMatrix(len(segmented_corpus), len(segmented_corpus))
     for i, document1 in enumerate(segmented_corpus):
+        segLst1 = document1.getSegmentation()
         for j, document2 in enumerate(segmented_corpus):
             print " * matrix :", document1, document2  
             if j <= i:
                 continue
-            segLst1 = document1.getSegmentation()
             segLst2 = document2.getSegmentation()
             print "   * distance matrix"
             matrix = DistMatrix(len(segLst1), len(segLst2))
