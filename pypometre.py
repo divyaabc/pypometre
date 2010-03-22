@@ -21,7 +21,7 @@ def main():
     documentSegmenter = getClassOf("documentSegmenters", "newline")(context)
     segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
     #segmentDistance = getClassOf("segmentDistances", "equals")(context)
-    documentDistance = getClassOf("documentDistances", "filteredMunkres")(context)
+    documentDistance = getClassOf("documentDistances", "hungarian")(context)
     resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
 
  
