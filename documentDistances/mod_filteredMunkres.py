@@ -24,10 +24,9 @@ def convolute(simplifiedMatrix, width, height):
     for y in xrange(height):
         for x in xrange(width):  
             value = 0.0
-            for j in (-1, 0, 1):
-                for i in (-1, 0, 1):
-                    value += simplifiedMatrix.get((x+i, y+j), 1.0)
-            value /= 9.0
+            for i in (-2, -1, 0, 1, 2):
+                value += weightsimplifiedMatrix.get((x+i, y+i), 1.0)
+            value /= 5.0
             if value >= 0.7:
                 value = 1.0
             total += 1.0 - value
