@@ -19,6 +19,8 @@ def main():
     context = {}
     documentFilter = getClassOf("documentFilters", "t")(context)
     documentSegmenter = getClassOf("documentSegmenters", "newline")(context)
+    #segmentDistance = getClassOf("segmentDistances", "jaro")(context)
+    #segmentDistance = getClassOf("segmentDistances", "jaro_winkler")(context)
     segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
     #segmentDistance = getClassOf("segmentDistances", "equals")(context)
     documentDistance = getClassOf("documentDistances", "hungarian")(context)
@@ -45,17 +47,15 @@ def main():
         segmented_document = documentSegmenter(document)
         segmented_corpus.append(segmented_document)
 
-    for document in segmented_corpus :
-      print document.str_verbose()
 
     print "Building segments distances matrices"
     documents_distances = DistMatrix(len(segmented_corpus), len(segmented_corpus))
     for i, document1 in enumerate(segmented_corpus):
         segLst1 = document1.getSegmentation()
         for j, document2 in enumerate(segmented_corpus):
-            print " * matrix :", document1, document2  
             if j <= i:
                 continue
+            print " * matrix :", document1, document2  
             segLst2 = document2.getSegmentation()
             print "   * distance matrix"
             matrix = DistMatrix(len(segLst1), len(segLst2))
@@ -67,9 +67,20 @@ def main():
             distance = documentDistance(matrix)
             documents_distances.set(i, j, distance)
             documents_distances.set(j, i, distance)
-    print documents_distances
 
-    print 
-    resultsPresenter(document_names, documents_distances)
+    print_json = '{"filenames" : \n  '
+    list_str_document = []
+    for document in segmented_corpus :
+      list_str_document.append(str(document)) 
+    print_json += str(list_str_document)
+    print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
+
+    out = './out.js'
+    file_out = open(out,'w')
+    file_out.write(print_json)
+    file_out.close()
+
+#    print 
+#    resultsPresenter(document_names, documents_distances)
 
 main()

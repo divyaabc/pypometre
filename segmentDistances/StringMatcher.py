@@ -5,7 +5,8 @@ class StringMatcher:
     """A SequenceMatcher-like class built on the top of Levenshtein"""
 
     def _reset_cache(self):
-        self._ratio = self._distance = self._hamming = self._jaro = None
+        self._ratio = self._distance = self._hamming = None
+        self._jaro = self._jaro_winkler = None
         self._opcodes = self._editops = self._matching_blocks = None
 
     def __init__(self, isjunk=None, seq1='', seq2=''):
@@ -77,4 +78,9 @@ class StringMatcher:
         if not self._jaro:
             self._jaro = jaro(self._str1, self._str2)
         return self._jaro
+
+    def jaro_winkler(self):
+        if not self._jaro_winkler:
+            self._jaro_winkler = jaro_winkler(self._str1, self._str2)
+        return self._jaro_winkler
 
