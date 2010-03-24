@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 import os, sys
 from dataStructures import *
 
