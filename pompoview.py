@@ -132,7 +132,7 @@ def get_color(v, steps, colors):
     return 0, "white"
 
 def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls):
-    names = [os.path.split(n)[1] for n in names]
+    #names = [os.path.split(n)[1] for n in names]
     steps = matrix_entangled_mean(matrix,nbCls)
     colors = get_hsl(0., 1., steps)
     print >>f, '<table style="collapse:collapse;" cellspacing="0">'
