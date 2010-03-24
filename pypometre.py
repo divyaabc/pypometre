@@ -18,7 +18,9 @@ def getClassOf(typ, name):
 def main():
     context = {}
     documentFilter = getClassOf("documentFilters", "t")(context)
-    documentSegmenter = getClassOf("documentSegmenters", "newline")(context)
+    #documentSegmenter = getClassOf("documentSegmenters", "newline")(context)
+    documentSegmenter = getClassOf("documentSegmenters", "nline")(1)
+    #documentSegmenter = getClassOf("documentSegmenters", "nchar")(5)
     #segmentDistance = getClassOf("segmentDistances", "jaro")(context)
     #segmentDistance = getClassOf("segmentDistances", "jaro_winkler")(context)
     segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
@@ -46,6 +48,10 @@ def main():
     for document in filtered_corpus:
         segmented_document = documentSegmenter(document)
         segmented_corpus.append(segmented_document)
+
+    for document in segmented_corpus :
+      print document.str_verbose()    
+    return 0
 
 
     print "Building segments distances matrices"

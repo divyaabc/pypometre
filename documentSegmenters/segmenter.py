@@ -30,14 +30,19 @@ class Segmenter_RegExp(Segmenter):
     def process(self, document):
         import re
         text = document.getContent()
-        regExp = re.compile(self.getRegExp(), re.M)
+        text = unicode(text,'utf-8')
+        len_text = len(text)
+        regExp = re.compile(self.getRegExp(), re.U | re.DOTALL)
         start = 0
+        end = len_text
         document.initSegmentation()
         for match in regExp.finditer(text):
-            end = match.end()
-            length = end - start
-            document.addSegment(start, length) 
-            start = end 
+          end = match.end()
+          length = end - start
+          document.addSegment(start, length) 
+          start = end 
+        if end < len_text :
+          document.addSegment(start, len_text - start)
 
     def getRegExp(self):
         raise NotImplementedError()

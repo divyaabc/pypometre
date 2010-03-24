@@ -46,6 +46,3 @@ class Filter_RegExp(Filter):
 
     def getNewValue(self):
         raise NotImplementedError()
-        
-
-
