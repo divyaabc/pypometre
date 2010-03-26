@@ -23,12 +23,22 @@ def main():
 
 #segmentDistance
     segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
+    #segmentDistance = getClassOf("segmentDistances", "innerEntropy")(context)
     #segmentDistance = getClassOf("segmentDistances", "jaro")(context)
     #segmentDistance = getClassOf("segmentDistances", "jaro_winkler")(context)
     #segmentDistance = getClassOf("segmentDistances", "equals")(context)
 
 #documentDistance
-    documentDistance = getClassOf("documentDistances", "hungarian")(context)
+    param_filter = {}
+    param_filter["convolve"] = [ [0.2, 0,   0,   0,   0],
+                                 [0,   0.2, 0,   0,   0],
+                                 [0,   0,   0.2, 0,   0],
+                                 [0,   0,   0,   0.2, 0],
+                                 [0,   0,   0,   0,   0.2] ]
+    param_filter["threshold"] = (0.3,0.7)
+    documentDistance = getClassOf("documentDistances", "hungarian")(param_filter)
+
+
 
     resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
  

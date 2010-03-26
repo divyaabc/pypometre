@@ -227,32 +227,10 @@ def print_matrix_as_tex2(f, names, matrix, nodes, separators, nbCls):
 def matrix_get_line(matrix, line): 
     return dict((k, v) for (k, v) in matrix.iteritems() if k[0] == line)
 
-def print_matrix_as_html_bis(f, matrix, nodes, nbCls):
-    print >>f, '<table style="collapse:collapse;" cellspacing="0">'
-    print >>f, "<tr><td></td>" 
-    for n in nodes:
-        print >>f, '<th style="padding:0px;">%5d</th> '%n
-    print >>f, "</tr>"
-    for i, n in enumerate(nodes):
-        steps = matrix_entangled_mean(matrix_get_line(matrix, i),nbCls)
-        colors = get_hsl(0., 1., steps)
-        print >>f,  "<tr><th>%2d</th>"%n
-        for j in xrange(len(nodes)):
-            #color = get_color_html(abs(matrix[(i, j)]-reference))
-            cls, color = get_color(matrix[(i, j)], steps, colors)
-            print >>f, '<td style="padding:4px;background-color:%s;">%6.2f</td>'%(color, matrix[(i, j)])
-            #print >>f, '<td style="background-color:%s;">%.2f</td>'%(color, cls/(2.**nbCls))
-        print >>f, "</tr>"
-    
-    print >>f, "</table>"
-
-
 def init_groupes(matrix):
     groupes = [[i] for i, j in matrix if j == 0]
     groupes.sort()
     return groupes
-
-
 
 def dist_min(matrix, g1, g2):
     return min(matrix[(i, j)] for i in g1 for j in g2)
@@ -403,39 +381,31 @@ def print_tensor(matrix):
     print_pts(pts)
 
 def main(inFile, outFile):
-    
-    #pts = get_pts()
-    #print_pts(pts)
-    #print 
-    #matrix = get_matrix(pts)
     data = eval(file(inFile).read())
     names, input = data["filenames"], data["corpus_scores"]
-    #print input
     #raise SystemExit(0)
     matrix = listList_to_matrix(input)
     couples = linkage(matrix, dist_max)
     #print_couples(couples, matrix)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
-    #print separators
     sortedMatrix = permute_matrix(matrix, sortedNodes)
     #print_matrix_with_titles(sortedMatrix, sortedNodes)
     f = open(outFile, "w")
     print_matrix_as_html(f, names, sortedMatrix, sortedNodes, separators, 3)
     #print_matrix_as_tex2(f, names, sortedMatrix, sortedNodes, separators, 3)
     #print_matrix_as_tex(f, names, sortedMatrix, sortedNodes, separators, 3)
-    #print_matrix_as_html_bis(f, sortedMatrix, sortedNodes, 2)
 
 import sys, os
 producedFiles = []
 for fileName in sys.argv[1:]:
-    data = eval(file(fileName).read())
-    names, input = data["filenames"], data["corpus_scores"]
-    #raise SystemExit(0)
-#    outFileName = os.path.splitext(fileName)[0] + ".tex"
-    outFileName = os.path.splitext(fileName)[0] + ".html"
-    producedFiles.append(outFileName)
-    main(fileName, outFileName)
+  data = eval(file(fileName).read())
+  names, input = data["filenames"], data["corpus_scores"]
+#  raise SystemExit(0)
+#  outFileName = os.path.splitext(fileName)[0] + ".tex"
+  outFileName = os.path.splitext(fileName)[0] + ".html"
+  producedFiles.append(outFileName)
+  main(fileName, outFileName)
 print "Produced files: "
 for fileName in producedFiles:
     print " - " + "file://" + os.path.join(os.path.abspath("."), fileName)

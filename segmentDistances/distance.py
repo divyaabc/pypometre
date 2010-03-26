@@ -7,19 +7,8 @@ class Distance:
         pass
 
     def __call__(self, seg1, seg2):
-        #self.preprocess(document)
-        return self.process(seg1, seg2)
-        #self.postprocess(document)
-        #return document
-
-    #def preprocess(self, document):
-    #    print " + Filter :",  document
-    #    self._t0 = time.time()
+        res = self.process(seg1, seg2)
+        return res
 
     def process(self, seg1, seg2):
         raise NotImplementedError()
-
-    #def postprocess(self, document):
-    #    print " - Filter :",  document
-    #    print "   Duration(s) : %.2f"% time.time() - self.t0
-

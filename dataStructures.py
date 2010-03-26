@@ -60,12 +60,6 @@ class Document:
     def getContent(self):
         return self._content
 
-#    def getFilteredContent(self):
-#        return self._filteredContent
-
-#    def setFilteredContent(self, content):
-#        self._filteredContent = content
-
     def setSegmentation(self, segmentation):
         self._segmentation = segmentation
 

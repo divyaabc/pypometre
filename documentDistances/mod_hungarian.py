@@ -22,8 +22,8 @@ class Module_hungarian(documentDistances.Distance):
         matrix = squarize(matrixOrig)
         a = numpy.array(matrix)
 
-        path  = "./log/documentDistances/"
-        path += "./distance_" + str(minDim) + "_" + str(maxDim) + ".png"
+#        path  = "./log/documentDistances/"
+#        path += "./distance_" + str(minDim) + "_" + str(maxDim) + ".png"
 #        matrix2image(a,path)
 
         pairs = hungarian.lap(a)[0]
@@ -35,15 +35,11 @@ class Module_hungarian(documentDistances.Distance):
                 break;
             a_void[i][j] = matrix[i][j]
 
-        filter = numpy.array( [ [0.2, 0,   0,   0,   0],
-                                [0,   0.2, 0,   0,   0],
-                                [0,   0,   0.2, 0,   0],
-                                [0,   0,   0,   0.2, 0],
-                                [0,   0,   0,   0,   0.2] ] )
+        filter = numpy.array(self._context["convolve"])
 
         a_convolved = scipy.signal.convolve2d(a_void, filter, mode="same")
-        path  = "./log/documentDistances/"
-        path += "convolved_" + str(minDim) + "_" + str(maxDim) + ".png"
+#        path  = "./log/documentDistances/"
+#        path += "convolved_" + str(minDim) + "_" + str(maxDim) + ".png"
 #        matrix2image(a_convolved,path)
 
         a_seuil = a_convolved.copy()
@@ -53,15 +49,15 @@ class Module_hungarian(documentDistances.Distance):
         for i, j in enumerate(pairs):
           if i >= minDim:
             break;
-          if a_convolved[i][j] > 0.7 :
-            a_convolved[i][j] = 1
-          elif a_convolved[i][j] < 0.3 :
+          if a_convolved[i][j] < self._context["threshold"][0] :
             a_convolved[i][j] = 0
+          elif a_convolved[i][j] > self._context["threshold"][1] :
+            a_convolved[i][j] = 1
           score += a_convolved[i][j]
           a_seuil[i][j] = a_convolved[i][j]
 
-        path  = "./log/documentDistances/"
-        path += "seuil_" + str(minDim) + "_" + str(maxDim) + ".png"
+#        path  = "./log/documentDistances/"
+#        path += "seuil_" + str(minDim) + "_" + str(maxDim) + ".png"
 #        matrix2image(a_seuil,path)
 
         result = score / minDim
