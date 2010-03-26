@@ -50,22 +50,21 @@ class Document:
     def __init__(self, fileName):
         self._fileName = fileName
         content = open(fileName).read()
-        info_encoding = chardet.detect(content)
-        encoding = info_encoding['encoding']
-        content_unicode = unicode(content,encoding)
+        info  = chardet.detect(content)
+        content_unicode = unicode(content,info['encoding'])
         content = content_unicode.encode('utf-8','replace')
         self._content = content
-        self._filteredContent = None
+#        self._filteredContent = None
         self._segmentation = None
 
     def getContent(self):
         return self._content
 
-    def getFilteredContent(self):
-        return self._filteredContent
+#    def getFilteredContent(self):
+#        return self._filteredContent
 
-    def setFilteredContent(self, content):
-        self._filteredContent = content
+#    def setFilteredContent(self, content):
+#        self._filteredContent = content
 
     def setSegmentation(self, segmentation):
         self._segmentation = segmentation
@@ -85,7 +84,6 @@ class Document:
     def str_verbose(self):
         res  = self._fileName + "\n"
         res += self._content + "\n"
-#        res += self._filteredContent + "\n"
         if self._segmentation != None :
           for segment in self._segmentation :
             res += "  "+str(segment) + "\n"
