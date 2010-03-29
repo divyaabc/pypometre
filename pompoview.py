@@ -149,7 +149,7 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls):
         print >>f, "</tr>"
     print >>f, "<tr>"
     for n in nodes:
-        print >>f, '<td style="padding:0px;">%s</td> '% "<br/>".join(names[n])
+        print >>f, '<td valign="top" style="padding:0px;">%s</td> '% "<br/>".join(names[n])
     print >>f, "<td></td></tr>"
     print >>f, "</table>"
 

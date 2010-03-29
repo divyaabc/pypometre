@@ -1,6 +1,7 @@
 import array
 import UserList
 import chardet
+import numpy
 
 class LazyLine:
     def __init__(self, theArray, length, offset):
@@ -40,6 +41,13 @@ class DistMatrix(UserList.UserList):
         return self.data[y][x] 
 #        return self._array[y * self._width + x]
 
+    def convert2numpy(self) :
+      matrix2 = []
+      for line in self.data :
+        matrix2.append(list(line))
+      a = numpy.array(matrix2) 
+      return a
+
 #    def __getitem__(self, line):
 #        return LazyLine(self._array, self._width, line*self._width)
 
@@ -51,6 +59,7 @@ class Document:
         self._fileName = fileName
         content = open(fileName).read()
         info  = chardet.detect(content)
+        print str(self)
         content_unicode = unicode(content,info['encoding'])
         content = content_unicode.encode('utf-8','replace')
         self._content = content

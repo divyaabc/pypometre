@@ -1,6 +1,15 @@
 #!/usr/bin/python
 import os, sys
+import pprint
 from dataStructures import *
+import Image
+import numpy
+
+def matrix2image(_matrix,_path):
+  a_print = _matrix.copy()
+  a_print = (1. - a_print) * 255
+  a_print = a_print.astype(numpy.uint8)
+  Image.fromarray(a_print).save(_path)
 
 def getClassOf(typ, name):
     fileName = "%s.mod_%s"%(typ, name)
@@ -28,19 +37,23 @@ def main():
     #segmentDistance = getClassOf("segmentDistances", "jaro_winkler")(context)
     #segmentDistance = getClassOf("segmentDistances", "equals")(context)
 
-#documentDistance
+#documentDistancesFilters
+    documentDistanceFilterH = getClassOf("documentDistancesFilters", "hungarian")({})
     param_filter = {}
     param_filter["convolve"] = [ [0.2, 0,   0,   0,   0],
                                  [0,   0.2, 0,   0,   0],
                                  [0,   0,   0.2, 0,   0],
                                  [0,   0,   0,   0.2, 0],
                                  [0,   0,   0,   0,   0.2] ]
+    documentDistanceFilterC = getClassOf("documentDistancesFilters", "convolve")(param_filter)
+    param_filter = {}
     param_filter["threshold"] = (0.3,0.7)
-    documentDistance = getClassOf("documentDistances", "hungarian")(param_filter)
+    documentDistanceFilterT = getClassOf("documentDistancesFilters", "threshold")(param_filter)
 
+#documentDistancesFilters
+    documentDistance = getClassOf("documentDistances", "sum")({})
 
-
-    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
+#    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
  
     document_names = sys.argv[1:]
 
@@ -70,19 +83,39 @@ def main():
     documents_distances = DistMatrix(len(segmented_corpus), len(segmented_corpus))
     for i, document1 in enumerate(segmented_corpus):
         segLst1 = document1.getSegmentation()
+        name_doc1 = os.path.split(str(document1))[1]
         for j, document2 in enumerate(segmented_corpus):
             if j <= i:
                 continue
             print " * matrix :", document1, document2  
             segLst2 = document2.getSegmentation()
+            name_doc2 = os.path.split(str(document2))[1]
             print "   * distance matrix"
             matrix = DistMatrix(len(segLst1), len(segLst2))
             for x, seg1 in enumerate(segLst1):
                 for y, seg2 in enumerate(segLst2):
                     distance = segmentDistance(seg1, seg2)
                     matrix.set(x, y, distance)
+            print "   * document distance filter"
+
+            matrix = matrix.convert2numpy()
+
+            matrix_hungarian = documentDistanceFilterH(matrix)
+            context_hungarian = documentDistanceFilterH._context
+            pairs_hungarian = context_hungarian["pairs"]
+
+            matrix_convolve = documentDistanceFilterC(matrix_hungarian)
+            matrix_threshold = documentDistanceFilterT(matrix_convolve)
+
+#            path  = "./log/documentDistances/"
+#            path += "./distance_" + name_doc1 + "_" + name_doc2 + ".png"
+#            matrix2image(matrix_threshold,path)
+
             print "   * document distance"
-            distance = documentDistance(matrix)
+            documentDistance._context["pairs"] = pairs_hungarian
+            distance = documentDistance(matrix_threshold)
+            print distance
+
             documents_distances.set(i, j, distance)
             documents_distances.set(j, i, distance)
 
