@@ -4,6 +4,7 @@ import pprint
 from dataStructures import *
 import Image
 import numpy
+from optparse import OptionParser
 
 def matrix2image(_matrix,_path):
   a_print = _matrix.copy()
@@ -20,8 +21,34 @@ def getClassOf(typ, name):
     print class_
     return class_
 
+def getMatrixId(_n) :
+  filter = []
+  val = 1. / _n
+  for i in xrange(_n) :
+    line = []
+    for j in xrange(_n) :
+      if i == j :
+        line.append(val)
+      else :
+        line.append(0)
+    filter.append(line)
+  return filter
+
 def main():
+    parser = OptionParser()
+    parser.add_option("-f", "--file", dest="filename", default = "out.js",
+                       help="write report to FILE", metavar="FILE")
+    parser.add_option("-q", "--quiet",
+                       action="store_false", dest="verbose", default=True,
+                       help="don't print status messages to stdout")
+
+    (opt_options, opt_args) = parser.parse_args()
+    opt_filename = opt_options.filename
+
     context = {}
+    context["convolve"] = getMatrixId(5)
+    context["threshold"] = (0.3,0.7)
+
 #documentFilter
     documentFilter = getClassOf("documentFilters", "t")(context)
 
@@ -39,16 +66,8 @@ def main():
 
 #documentDistancesFilters
     documentDistanceFilterH = getClassOf("documentDistancesFilters", "hungarian")({})
-    param_filter = {}
-    param_filter["convolve"] = [ [0.2, 0,   0,   0,   0],
-                                 [0,   0.2, 0,   0,   0],
-                                 [0,   0,   0.2, 0,   0],
-                                 [0,   0,   0,   0.2, 0],
-                                 [0,   0,   0,   0,   0.2] ]
-    documentDistanceFilterC = getClassOf("documentDistancesFilters", "convolve")(param_filter)
-    param_filter = {}
-    param_filter["threshold"] = (0.3,0.7)
-    documentDistanceFilterT = getClassOf("documentDistancesFilters", "threshold")(param_filter)
+    documentDistanceFilterC = getClassOf("documentDistancesFilters", "convolve")(context)
+    documentDistanceFilterT = getClassOf("documentDistancesFilters", "threshold")(context)
 
 #documentDistancesFilters
     documentDistance = getClassOf("documentDistances", "sum")({})
@@ -65,6 +84,7 @@ def main():
 
     print "Filtering documents..."
     filtered_corpus = []
+#    filtered_corpus = initial_corpus
     for document in initial_corpus:
         filtered_document = documentFilter(document)
         filtered_corpus.append(filtered_document)
@@ -126,8 +146,10 @@ def main():
     print_json += str(list_str_document)
     print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
 
-    out = './out.js'
-    file_out = open(out,'w')
+    print
+    print "---> " + opt_options.filename
+
+    file_out = open(opt_options.filename,'w')
     file_out.write(print_json)
     file_out.close()
 

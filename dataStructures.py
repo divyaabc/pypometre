@@ -2,6 +2,8 @@ import array
 import UserList
 import chardet
 import numpy
+import subprocess
+import re
 
 class LazyLine:
     def __init__(self, theArray, length, offset):
@@ -58,13 +60,33 @@ class Document:
     def __init__(self, fileName):
         self._fileName = fileName
         content = open(fileName).read()
-        info  = chardet.detect(content)
         print str(self)
-        content_unicode = unicode(content,info['encoding'])
-        content = content_unicode.encode('utf-8','replace')
-        self._content = content
-#        self._filteredContent = None
-        self._segmentation = None
+        f = subprocess.Popen(['file','-b','-i',fileName], stdout=subprocess.PIPE)
+        stdout, stderr = f.communicate()
+        charset = stdout.split("=")[-1].strip()
+        print charset
+
+        if re.search('unknown',charset) :
+          while(1) :
+            try : 
+              info = chardet.detect(content)
+              content_unicode = unicode(content,info['encoding'])
+              print " * Chardet : " + info['encoding']
+              break
+            except UnicodeError, e:
+              part = content[e.start:e.end-1] 
+              content = content[0:e.start] + content[e.end:]
+            else :
+              raise e
+        elif re.search('ascii',charset) :
+          print " * File : ascii" 
+          content_unicode = unicode(content,"ascii")
+          
+        else :
+          print " * File : " + str(charset)
+          content_unicode = unicode(content,charset)
+
+        self._content = content_unicode.encode('utf-8','replace')
 
     def getContent(self):
         return self._content
