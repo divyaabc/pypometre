@@ -11,75 +11,12 @@ def median(matrix):
     lst = sorted(matrix.values())
     return lst[len(lst)/2]
 
-def get_pts():
-    pts = [
-      (5,3),
-      (4,5),
-      (6,1),
-      (7,3),
-      (8,2),
-      (10,10),
-      (9,9),
-      (6,5),
-      (3,10),
-    ]
-    return pts
-
-def print_pts(pts):
-    print pts
-    l = int(max(max(x, y) for x, y in pts))
-    m = int(min(min(x, y) for x, y in pts)) 
-    if l-m > 100:
-        print "ERROR: l-m=%d is too much"%(l-m)
-        return 
-    r = ""
-    for i in xrange(m-1, l+1):
-        for j in xrange(m-1, l+1):
-            for n, (x, y) in enumerate(pts):
-                if ((i, j) == (int(x)+m, int(y)+m)):
-                    r += "%2d"%n
-                    break 
-            else:
-                r += " -"
-        r += "\n"
-    print r
-
-def get_matrix(pts):
-    matrix = {}
-    for i, (xi, yi) in enumerate(pts):
-        for j, (xj, yj) in enumerate(pts):
-            matrix[(i, j)] = math.hypot(xj-xi, yj-yi) / math.hypot(10, 10) 
-    return matrix  
-
 def listList_to_matrix(lstLst):
     matrix = {}
     for i, lst in enumerate(lstLst):
         for j, v in enumerate(lst):
             matrix[(i, j)] = v
     return matrix
-
-def print_matrix(matrix):
-    l = max(i for (i, j) in matrix)
-    print " "*6, 
-    for i in xrange(l):
-        print "%5d "%i,
-    print
-    for i in xrange(l):
-        print "%2d : "%i,
-        for j in xrange(l):
-            print "%6.2f"%matrix[(i, j)],
-        print
-
-def print_matrix_with_titles(matrix, nodes):
-    print " "*6, 
-    for n in nodes:
-        print "%5d "%n,
-    print
-    for i, n in enumerate(nodes):
-        print "%2d : "%n,
-        for j in xrange(len(nodes)):
-            print "%6.2f"%matrix[(i, j)],
-        print
 
 def matrix_mean(matrix):
     return sum(matrix.values()) / len(matrix)
@@ -103,9 +40,6 @@ def matrix_entangled_mean(matrix, n):
     result.sort()
     return result
 
-def matrix_median(matrix):
-    return list(sorted(matrix.values()))[len(matrix)/2]
-
 def get_hsl(min, max, steps):
     colors = []
     for s in xrange(len(steps)):
@@ -122,9 +56,7 @@ def get_color_tex(r) :
     return "\cellcolor[hsb]{%0.2f, %0.2f, %0.2f}"%(float(120*r)/360, .7, .9)#int(r*100), 70)
 
 def get_color_html(r):
-    #return "hsl(%d, %d%%, %d%%)"%(int(120*r), 100-int(r*5)*10, 50-int(r*5)*10)#int(r*100), 70)
     return "hsl(%d, %d%%, %d%%)"%(int(120*r), 100, 50)#int(r*100), 70)
-    #return "#%02x%02x%02x"%(int(r*255), int(g*255), int(b*255))
 
 def get_color(v, steps, colors):
     for i, (s, c) in enumerate(zip(steps, colors)):
@@ -153,9 +85,6 @@ def normalize_matrix(matrix, nodes) :
         matrix_normalized[(i,j)] = (val - mn) / inter
 
   return matrix_normalized
-
-def matrix_get_line(matrix, line): 
-    return dict((k, v) for (k, v) in matrix.iteritems() if k[0] == line)
 
 def init_groupes(matrix):
     groupes = [[i] for i, j in matrix if j == 0]
@@ -213,19 +142,11 @@ def tree_diameter(matrix, node):
         return 2
     return max(matrix[(i, j)] for i in node for j in node if i != j)
 
-
 def couples_to_tree(couples):
     children = {}
     for dist, i1, i2, total in couples:
         children[tuple(total)] = (tuple(i1), tuple(i2))
     return (children, tuple(couples[-1][-1]))
-
-def takeByTwo(l):
-    it = iter(l)
-    n = it.next()
-    for m in it:
-        yield n, m
-        n = m
 
 def sort_tree(tree, couples, sort_fct): 
     children, root = tree
@@ -373,7 +294,6 @@ def print_matrix_as_tex(f, names, matrix, nodes, separators, nbCls, option_proje
 
 def main(options):
     #raise SystemExit(0)
-    print options
 ########################################
 #   OPTION : filename -f
 ########################################
@@ -393,30 +313,41 @@ def main(options):
         outFile = os.path.splitext(options.fileout)[0] + "." + options.mode
     f = open(outFile, "w")
 
+    if(options.verbose) :
+      print " - read file"
     data = eval(file(inFile).read())
     names, input = data["filenames"], data["corpus_scores"]
     matrix = listList_to_matrix(input)
 
+    if(options.verbose) :
+      print " - sort document values"
     couples = linkage(matrix, dist_max)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
     sortedMatrix = permute_matrix(matrix, sortedNodes)
-    #print_matrix_with_titles(sortedMatrix, sortedNodes)
 
 ########################################
 #   OPTION : normalisation -n
 ########################################
     normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
     if options.normalize :
-      normedMatrix = normalize_matrix(matrix,nodes)
+      if(options.verbose) :
+        print " - normalize each document score"
+      normedMatrix = normalize_matrix(normedMatrix,sortedNodes)
+
+########################################
+#   OPTION : verbose -q
+########################################
+    if(options.verbose) :
+      print " - draw matrix"
 
 ########################################
 #   OPTION : output mode -m
 ########################################
     if options.mode == "html" :
-      print_matrix_as_html(f, names, normedMatrix, sortedNodes, separators, 3, options.projection)
+      print_matrix_as_html(f, names, normedMatrix, sortedNodes, separators, options.nb_class, options.projection)
     elif options.mode == "tex" :
-      print_matrix_as_tex(f, names, sortedMatrix, sortedNodes, separators, 3, options.projection)
+      print_matrix_as_tex(f, names, sortedMatrix, sortedNodes, separators, options.nb_class, options.projection)
     elif options.mode == "doc" :
       print_matrix_as_doc(f, names, sortedMatrix, sortedNodes, separators, options.nb_class, options.projection)
 
@@ -449,7 +380,6 @@ parser.add_option("-m", "--mode",
 parser.add_option("-p", "--projection",
                    action="store_true", dest="projection", default=False,
                    help="Project the values of the matrix on the x-axis : (default = False)")
-
 
 parser.add_option("-c", "--nb_class", dest="nb_class", default = "4", type = "int",
                    help="Use a coloration in NBCLASS classes (default = 4)", metavar="NBCLASS")
