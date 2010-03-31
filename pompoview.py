@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import math
 from functools import partial
+from optparse import OptionParser
 
 def avg(l): 
     l = list(l)
@@ -131,98 +132,27 @@ def get_color(v, steps, colors):
             return i, c
     return 0, "white"
 
-def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls):
-    #names = [os.path.split(n)[1] for n in names]
-    steps = matrix_entangled_mean(matrix,nbCls)
-    colors = get_hsl(0., 1., steps)
-    print >>f, '<table style="collapse:collapse;" cellspacing="0">'
-    for i, n in enumerate(nodes):
-        print >>f,  '<tr>'
-        for j in xrange(len(nodes)):
-            sepCol = 0#(int(separators[j]*4)) 
-            sepRow = 0#(int(separators[i]*4)) 
-            sepTxt = "border-right: %dpx solid black;"%sepCol
-            sepTxt+= "border-bottom: %dpx solid black;"%sepRow
-            cls, color = get_color(matrix[(i, j)], steps, colors)
-            print >>f, '<td style="padding:4px;%sbackground-color:%s;">%6.2f</td>'%(sepTxt, color, matrix[(i, j)])
-        print >>f, '<td>%s</td>'%names[n]
-        print >>f, "</tr>"
-    print >>f, "<tr>"
-    for n in nodes:
-        print >>f, '<td valign="top" style="padding:0px;">%s</td> '% "<br/>".join(names[n])
-    print >>f, "<td></td></tr>"
-    print >>f, "</table>"
+def normalize_matrix(matrix, nodes) :
+  mx = 0
+  mn = 1
+  matrix_normalized = {}
+  for i,n in enumerate(nodes) :
+    for j in xrange(len(nodes)):
+      mx = max(mx,matrix[(i,j)])
+      if (i != j) :
+        mn = min(mn,matrix[(i,j)])
 
-def print_matrix_as_tex(f, names, matrix, nodes, separators, nbCls):
-    names = [os.path.split(n)[1] for n in names]
-    steps = matrix_entangled_mean(matrix,nbCls)
-    colors = get_hsb(0., 1., steps)
-    descript_col = "|r|"
-    first_line = "  &"
-    for i,val in enumerate(nodes):
-      descript_col += 'c'
-      first_line += ' '+str(names[val])+' &'
-    first_line = '\hline\n' + first_line[:len(first_line)-2] + '\\\\'
+  inter = mx - mn
 
-    print >>f, '\\begin{tabular}{' + descript_col + '|}'
-    print >>f,  first_line
-    print >>f,  '\hline'
-    
-    for i, n in enumerate(nodes):
-        line = "%s & " % (names[n])
-        for j in xrange(len(nodes)):
-            cls, color = get_color(matrix[(i, j)], steps, colors)
-            line += '%s %.2f & ' % (color,matrix[(i,j)])
-        line = line[:len(line)-2] + '\\\\' 
-        print >>f, "%s" % (line)
-        print >>f, '\cline{1-1}'
-    print >>f, '\hline'
-    print >>f, '\end{tabular}'
+  for i,n in enumerate(nodes) :
+    for j in xrange(len(nodes)):
+      val = matrix[(i,j)]
+      if val == 0 : 
+        matrix_normalized[(i,j)] = val
+      else :
+        matrix_normalized[(i,j)] = (val - mn) / inter
 
-def print_matrix_as_tex2(f, names, matrix, nodes, separators, nbCls):
-    names = [os.path.split(n)[1] for n in names]
-    steps = matrix_entangled_mean(matrix,nbCls)
-    colors = get_hsb(0., 1., steps)
-    descript_col = "|r|"
-    first_line = "  &"
-    total = []
-    cpt=0
-    for i,val in enumerate(nodes):
-      total.append(0)
-      descript_col += 'c'
-      first_line += ' '+str(names[val])+' &'
-#      first_line += ' \\rotatebox{45}{'+str(names[val])+'} &'
-    first_line = '\hline\n' + first_line[:len(first_line)-2] + '\\\\'
-
-    print >>f, '\\begin{tabular}{' + descript_col + '|}'
-    print >>f,  first_line
-    print >>f,  '\hline'
-    
-    for i, n in enumerate(nodes):
-        cpt += 1
-        line = "%s & " % (names[n])
-        for j in xrange(len(nodes)):
-            cls, color = get_color(matrix[(i, j)], steps, colors)
-            if(i != j) :
-              total[j] += matrix[(i,j)]
-            line += '%s %.2f & ' % (color,matrix[(i,j)])
-        line = line[:len(line)-2] + '\\\\' 
-        print >>f, "%s" % (line)
-        print >>f, '\cline{1-1}'
-    print >>f, '\hline'
-    print >>f, 'total & '
-
-    line_total = ""
-    for val in total :
-      true_val = float(val) / (cpt-1)
-      cls, color = get_color(true_val, steps, colors)
-      line_total += '%s %0.2f & ' % (color, float(val) / (cpt-1))
-    line_total = line_total[:len(line_total)-2] + '\\\\' 
-    print >>f, "%s" % (line_total)
-    print >>f, '\hline'
-
-    print >>f, '\end{tabular}'
-
+  return matrix_normalized
 
 def matrix_get_line(matrix, line): 
     return dict((k, v) for (k, v) in matrix.iteritems() if k[0] == line)
@@ -261,19 +191,6 @@ def linkage(matrix, dist):
         del(groupes[i2])
         groupes.sort()
     return couples
-
-def energie_groupe(g, matrix):
-    e = 0.0
-    for i in g:
-        for j in g:
-            if i > j:
-                continue
-            e += matrix[(i, j)]
-    conn = (len(g)*(len(g)-1)) / 2.0
-    if conn < 0.001:
-        return 0
-    e /= conn
-    return e 
 
 def get_height(tree, node):
     if len(node) == 1: 
@@ -347,67 +264,195 @@ def filter_matrix(matrix, line):
             elif (line == i) or (line == j):
                 matrix[(i, j)] = 0.9999999
 
-def print_couples(couples, matrix):
-    for dist, g1, g2, total in couples:
-        e1 = energie_groupe(g1, matrix)
-        e2 = energie_groupe(g2, matrix)
-        et = energie_groupe(total, matrix)
-        print "%6.2f %6.2f %6.2f %6.2f %20s - %-20s"%(dist, e1, e2, et, g1, g2)
+def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_projection):
+    steps = matrix_entangled_mean(matrix,nbCls)
+    colors = get_hsl(0., 1., steps)
+
+    if option_projection :
+      total = []
+      cpt = 0
+      for j in xrange(len(nodes)):
+        total.append(0)
+        cpt += 1
+      cpt -= 1
+
+    print >>f, '<table style="collapse:collapse;" cellspacing="0">'
+    for i, n in enumerate(nodes):
+        print >>f,  '<tr>'
+        for j in xrange(len(nodes)):
+          if option_projection and (i != j) :
+            total[j] += matrix[(i,j)]
+          sepTxt = "border-right: 0px solid black; border-bottom: 0px solid black;"
+          cls, color = get_color(matrix[(i, j)], steps, colors)
+          print >>f, '<td style="font-size:13px; padding:4px;%sbackground-color:%s;">%6.2f</td>'%(sepTxt, color, matrix[(i, j)])
+        print >>f, '<td style="font-size : 12px;">%s</td>'%names[n]
+        print >>f, "</tr>"
+    print >>f, "<tr>"
+
+    if option_projection :
+      print >>f, "<tr>"
+      line_str = ""
+      for val in total :
+        true_val = float(val) / cpt
+        cls, color = get_color(true_val, steps, colors)
+        sepTxt = "border: 1px solid black;"
+        line_str += '<td style="font-size : 12px; padding:4px;%sbackground-color:%s;">%6.2f</td>'%(sepTxt, color, true_val)
+      print >>f, "%s"%(line_str) 
+      print >>f, "</tr>"
+
+    for n in nodes:
+        print >>f, '<td valign="top" style="font-size:12px; padding:0px;">%s</td> '% "<br/>".join(names[n])
+    print >>f, "<td></td></tr>"
 
 
-def print_tensor(matrix):
-    import random
-    max_matrix = max(max(x, y) for x, y in matrix)
-    pts = [(random.random(), random.random()) for _ in xrange(max_matrix)]
-    energy = 100.0
-    while energy > 1.0:
-        dx, dy = 0.0, 0.0
-        newPts = pts[:]
-        for i, (x1, y1) in enumerate(pts):
-            for j in xrange(i+1, len(pts)):
-                x2, y2 = pts[j]
-                d = matrix[(i, j)]*20
-                e = math.hypot(x2-x1,y2-y1) 
-                angle = math.atan2(y2-y1, x2-x1)
-                
-                f = (d-e)*0.02 
-                dx += math.cos(angle)*(f)
-                dy += math.sin(angle)*(f) 
-            if math.hypot(dx, dy) <= energy:
-                dx, dy = 0.0, 0.0
-            newPts[i] = (x1 + dx, y1 + dy)
-        pts = newPts
-        energy -= 1.0
-    print_pts(pts)
+    print >>f, "</table>"
 
-def main(inFile, outFile):
+def print_matrix_as_doc(f, names, matrix, nodes, separators, nbCls, option_projection):
+  print >>f, "\documentclass[a4paper]{article}"
+  print >>f, "\usepackage[utf8]{inputenc}"
+  print >>f, "\usepackage[T1]{fontenc}" 
+  print >>f, "\usepackage[francais]{babel}"
+  print >>f, "\usepackage[counterclockwise]{rotating}"
+  print >>f, "\usepackage[table]{xcolor}"
+  print >>f, '\\begin{document}'
+
+  print_matrix_as_tex(f, names, matrix, nodes, separators, nbCls, option_projection)
+
+  print >>f, "\end{document}"
+
+
+def print_matrix_as_tex(f, names, matrix, nodes, separators, nbCls, option_projection):
+    steps = matrix_entangled_mean(matrix,nbCls)
+    colors = get_hsb(0., 1., steps)
+    descript_col = "|r|"
+    first_line = "  &"
+
+    for i,val in enumerate(nodes):
+      descript_col += 'c'
+      first_line += ' \\rotatebox{90}{'+str(names[val])+'} &'
+    first_line = '\hline\n' + first_line[:len(first_line)-2] + '\\\\'
+
+    print >>f, '\\begin{tabular}{' + descript_col + '|}'
+    print >>f,  first_line
+
+    if option_projection :
+      total = []
+      cpt=0
+      for i,val in enumerate(nodes):
+        total.append(0)
+        descript_col += 'c'
+
+    print >>f,  '\hline'
+    
+    for i, n in enumerate(nodes):
+        line = "%s & " % (names[n])
+        for j in xrange(len(nodes)):
+            cls, color = get_color(matrix[(i, j)], steps, colors)
+            if(option_projection and i != j) :
+              total[j] += matrix[(i,j)]
+              cpt += 1
+            line += '%s %.2f & ' % (color,matrix[(i,j)])
+        line = line[:len(line)-2] + '\\\\' 
+        print >>f, "%s" % (line)
+        print >>f, '\cline{1-1}'
+    print >>f, '\hline'
+
+
+    if option_projection :
+      print >>f, 'total & '
+      line_total = ""
+      for val in total :
+        true_val = float(val) / (cpt-1)
+        cls, color = get_color(true_val, steps, colors)
+        line_total += '%s %0.2f & ' % (color, float(val) / (cpt-1))
+      line_total = line_total[:len(line_total)-2] + '\\\\' 
+      print >>f, "%s" % (line_total)
+    print >>f, '\hline'
+
+    print >>f, '\end{tabular}'
+
+def main(options):
+    #raise SystemExit(0)
+    print options
+########################################
+#   OPTION : filename -f
+########################################
+    inFile = options.filename
+
+########################################
+#   OPTION : fileout -o
+#   OPTION : mode -m
+########################################
+
+    if options.fileout == "default" :
+      outFile = os.path.splitext(inFile)[0] + "." + options.mode
+    else :
+      if options.mode == "doc" :
+        outFile = os.path.splitext(options.fileout)[0] + ".doc.tex"
+      else :
+        outFile = os.path.splitext(options.fileout)[0] + "." + options.mode
+    f = open(outFile, "w")
+
     data = eval(file(inFile).read())
     names, input = data["filenames"], data["corpus_scores"]
-    #raise SystemExit(0)
     matrix = listList_to_matrix(input)
+
     couples = linkage(matrix, dist_max)
-    #print_couples(couples, matrix)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
     sortedMatrix = permute_matrix(matrix, sortedNodes)
     #print_matrix_with_titles(sortedMatrix, sortedNodes)
-    f = open(outFile, "w")
-    print_matrix_as_html(f, names, sortedMatrix, sortedNodes, separators, 3)
-    #print_matrix_as_tex2(f, names, sortedMatrix, sortedNodes, separators, 3)
-    #print_matrix_as_tex(f, names, sortedMatrix, sortedNodes, separators, 3)
+
+########################################
+#   OPTION : normalisation -n
+########################################
+    normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
+    if options.normalize :
+      normedMatrix = normalize_matrix(matrix,nodes)
+
+########################################
+#   OPTION : output mode -m
+########################################
+    if options.mode == "html" :
+      print_matrix_as_html(f, names, normedMatrix, sortedNodes, separators, 3, options.projection)
+    elif options.mode == "tex" :
+      print_matrix_as_tex(f, names, sortedMatrix, sortedNodes, separators, 3, options.projection)
+    elif options.mode == "doc" :
+      print_matrix_as_doc(f, names, sortedMatrix, sortedNodes, separators, options.nb_class, options.projection)
+
+########################################
+#   OPTION : verbose -q
+########################################
+    if(options.verbose) :
+      print " - " + "file://" + os.path.join(os.path.abspath("."), outFile)
 
 import sys, os
-producedFiles = []
-for fileName in sys.argv[1:]:
-  data = eval(file(fileName).read())
-  names, input = data["filenames"], data["corpus_scores"]
-#  raise SystemExit(0)
-#  outFileName = os.path.splitext(fileName)[0] + ".tex"
-  outFileName = os.path.splitext(fileName)[0] + ".html"
-  producedFiles.append(outFileName)
-  main(fileName, outFileName)
-print "Produced files: "
-for fileName in producedFiles:
-    print " - " + "file://" + os.path.join(os.path.abspath("."), fileName)
+parser = OptionParser()
+parser.add_option("-f", "--file", dest="filename", default = "out.js",
+                   help="Write report from FILE", metavar="FILE")
+
+parser.add_option("-o", "--output_file", dest="fileout", default = "default",
+                   help="Write report to FILEOUT (default)", metavar="FILEOUT")
+
+parser.add_option("-q", "--quiet",
+                   action="store_false", dest="verbose", default=True,
+                   help="don't print status messages to stdout")
+
+parser.add_option("-n", "--normalize",
+                   action="store_true", dest="normalize", default=False,
+                   help="Normalize each values of the matrix between [minVal,maxVal] (default = False)")
+
+parser.add_option("-m", "--mode",
+                   dest="mode", default="html",
+                   help="Output mode : html, tex (prepared for input), doc (prepared for pdflatex)")
+
+parser.add_option("-p", "--projection",
+                   action="store_true", dest="projection", default=False,
+                   help="Project the values of the matrix on the x-axis : (default = False)")
 
 
+parser.add_option("-c", "--nb_class", dest="nb_class", default = "4", type = "int",
+                   help="Use a coloration in NBCLASS classes (default = 4)", metavar="NBCLASS")
+
+(opt_options, opt_args) = parser.parse_args()
+main(opt_options)
