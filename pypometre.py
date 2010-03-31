@@ -74,7 +74,7 @@ def main():
 
 #    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
  
-    document_names = sys.argv[1:]
+    document_names = opt_args
 
     print "Creating corpus..."
     initial_corpus = []
@@ -84,10 +84,10 @@ def main():
 
     print "Filtering documents..."
     filtered_corpus = []
-#    filtered_corpus = initial_corpus
-    for document in initial_corpus:
-        filtered_document = documentFilter(document)
-        filtered_corpus.append(filtered_document)
+    filtered_corpus = initial_corpus
+#    for document in initial_corpus:
+#        filtered_document = documentFilter(document)
+#        filtered_corpus.append(filtered_document)
 
     print "Segmentation..."
     segmented_corpus = []
