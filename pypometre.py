@@ -34,16 +34,51 @@ def getMatrixId(_n) :
     filter.append(line)
   return filter
 
+
+##    parser.add_option('-a', '--add',
+#                      type='string',
+#                      action='callback',
+#                      callback=foo_callback)
+
+def read_list_arg1(option, opt, value, parser):
+  setattr(parser.values, option.dest, value.split(','))
+
+
+def read_list_arg2(option, opt, value, parser):
+  setattr(parser.values, option.dest, value.split(':'))
+
 def main():
     parser = OptionParser()
-    parser.add_option("-f", "--file", dest="filename", default = "out.js",
-                       help="write report to FILE", metavar="FILE")
+    parser.add_option("-o", "--file", dest="fileout", default = "out.js",
+                       help="write report to FILEOUT", metavar="FILEOUT")
     parser.add_option("-q", "--quiet",
                        action="store_false", dest="verbose", default=True,
                        help="don't print status messages to stdout")
 
+
+    parser.add_option("-t", "--filter", dest="filter", default = ["t"],
+                       type = "string", action = "callback", callback = read_list_arg1,
+                       help="FILTER applied on each document (-t f1,f2,f1 will apply f1 then f2 and f1)", metavar="FILTER")
+
+    parser.add_option("-c", "--segmenter", dest="segmenter", default = ["l","1"],
+                       type = "string", action = "callback", callback = read_list_arg2,
+                       help="use de segmenter SEG", metavar="SEG")
+
+    parser.add_option("-s", "--segmentDistance", dest="segmentDistance", default = "levenshtein",
+                       help="use de distance between segments SEGDIST", metavar="SEGDIST")
+
+    parser.add_option("-l", "--documentDistanceFilter", dest="documentDistanceFilter",
+                       default = ["h"],
+                       type = "string", action = "callback", callback = read_list_arg1,
+                       help="DOCDISTFILTER applied on the segment matrix (-l f1,f2,f1 will apply f1 then f2 and f1)", metavar="DOCDISTFILTER")
+
+
+    parser.add_option("-d", "--documentDistance", dest="documentDistance", default = "sum",
+                       help="compute the distance DOCDIST on the segment matrix", metavar="DOCDIST")
+
+
     (opt_options, opt_args) = parser.parse_args()
-    opt_filename = opt_options.filename
+    opt_fileout = opt_options.fileout
 
     context = {}
     context["convolve"] = getMatrixId(5)
@@ -58,7 +93,8 @@ def main():
     #documentSegmenter = getClassOf("documentSegmenters", "nchar")(1)
 
 #segmentDistance
-    segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
+    if opt_options.segmentDistance == "levenshtein" :
+      segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
     #segmentDistance = getClassOf("segmentDistances", "innerEntropy")(context)
     #segmentDistance = getClassOf("segmentDistances", "jaro")(context)
     #segmentDistance = getClassOf("segmentDistances", "jaro_winkler")(context)
@@ -73,12 +109,10 @@ def main():
     documentDistance = getClassOf("documentDistances", "sum")({})
 
 #    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
- 
-    document_names = opt_args
 
     print "Creating corpus..."
     initial_corpus = []
-    for fileName in document_names:
+    for fileName in opt_args:
         content = Document(fileName)
         initial_corpus.append(content)
 
@@ -147,9 +181,9 @@ def main():
     print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
 
     print
-    print "---> " + opt_options.filename
+    print "---> " + opt_options.fileout
 
-    file_out = open(opt_options.filename,'w')
+    file_out = open(opt_options.fileout,'w')
     file_out.write(print_json)
     file_out.close()
 
