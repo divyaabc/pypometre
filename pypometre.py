@@ -6,12 +6,14 @@ import Image
 import numpy
 from optparse import OptionParser
 
+#prend une matrice de distance entre segment et l'ecrit au format png dans le fichier _path
 def matrix2image(_matrix,_path):
   a_print = _matrix.copy()
   a_print = (1. - a_print) * 255
   a_print = a_print.astype(numpy.uint8)
   Image.fromarray(a_print).save(_path)
 
+# recupere le fichier mod_name dans le dossier typ et charge Module_name
 def getClassOf(typ, name):
     fileName = "%s.mod_%s"%(typ, name)
     className = "Module_%s"%(name)
@@ -21,6 +23,7 @@ def getClassOf(typ, name):
     print class_
     return class_
 
+# renvoi la matrice identite _n*_n normalise (matrice de convolution)
 def getMatrixId(_n) :
   filter = []
   val = 1. / _n
@@ -34,19 +37,15 @@ def getMatrixId(_n) :
     filter.append(line)
   return filter
 
-
-##    parser.add_option('-a', '--add',
-#                      type='string',
-#                      action='callback',
-#                      callback=foo_callback)
-
+#parse des option separee par des ","
 def read_list_arg1(option, opt, value, parser):
   setattr(parser.values, option.dest, value.split(','))
 
-
+#parse des option separee par des ":"
 def read_list_arg2(option, opt, value, parser):
   setattr(parser.values, option.dest, value.split(':'))
 
+#fonction main
 def main():
     parser = OptionParser()
     parser.add_option("-o", "--file", dest="fileout", default = "out.js",
@@ -56,7 +55,7 @@ def main():
                        help="don't print status messages to stdout")
 
 
-    parser.add_option("-t", "--filter", dest="filter", default = ["t"],
+    parser.add_option("-t", "--filter", dest="documentFilter", default = ["t"],
                        type = "string", action = "callback", callback = read_list_arg1,
                        help="FILTER applied on each document (-t f1,f2,f1 will apply f1 then f2 and f1)", metavar="FILTER")
 
@@ -65,7 +64,7 @@ def main():
                        help="use de segmenter SEG", metavar="SEG")
 
     parser.add_option("-s", "--segmentDistance", dest="segmentDistance", default = "levenshtein",
-                       help="use de distance between segments SEGDIST", metavar="SEGDIST")
+                       help="use de distance between segments SEGDIST (lv: levenshtein, ie: inner entropy, j: jaro, jw: jaro winkler, eq: equals)", metavar="SEGDIST")
 
     parser.add_option("-l", "--documentDistanceFilter", dest="documentDistanceFilter",
                        default = ["h"],
@@ -80,32 +79,51 @@ def main():
     (opt_options, opt_args) = parser.parse_args()
     opt_fileout = opt_options.fileout
 
+
+
     context = {}
     context["convolve"] = getMatrixId(5)
     context["threshold"] = (0.3,0.7)
+    context["segmenter_n"] = int(opt_options.segmenter[1])
+#choix du documentFilter
 
-#documentFilter
-    documentFilter = getClassOf("documentFilters", "t")(context)
+    filters=[ getClassOf("documentFilters",x)(context) for x in opt_options.documentFilter]
 
-#documentSegmenter
-    documentSegmenter = getClassOf("documentSegmenters", "nline")(1)
+#     documentFilter = getClassOf("documentFilters", "t")(context)
+#     documentFilter = getClassOf("documentFilters", "s")(context)
+
+#choix du documentSegmenter
+
+    segmenterMap = {"l":"nline","c":"nchar"}
+    if segmenterMap.has_key(opt_options.segmenter[0]):
+      documentSegmenter = getClassOf("documentSegmenters", segmenterMap[opt_options.segmenter[0]])(context)
+    else:
+      documentSegmenter = getClassOf("documentSegmenters", opt_options.segmenter[0])(context)
+
+    #documentSegmenter = getClassOf("documentSegmenters", "nline")(1)
     #documentSegmenter = getClassOf("documentSegmenters", "newline")(context)
     #documentSegmenter = getClassOf("documentSegmenters", "nchar")(1)
 
-#segmentDistance
-    if opt_options.segmentDistance == "levenshtein" :
-      segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
+#choix du segmentDistance
+
+    segDistMap = {"lv":"levenshtein","ie":"innerEntropy","j":"jaro","jw":"jaro_winkler","eq":"equals"}
+    if segDistMap.has_key(opt_options.segmentDistance):
+      segmentDistance = getClassOf("segmentDistances", segDistMap[opt_options.segmentDistance])(context)
+    else:
+      segmentDistance = getClassOf("segmentDistances", opt_options.segmentDistance)(context)
+
     #segmentDistance = getClassOf("segmentDistances", "innerEntropy")(context)
+    #segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
     #segmentDistance = getClassOf("segmentDistances", "jaro")(context)
     #segmentDistance = getClassOf("segmentDistances", "jaro_winkler")(context)
     #segmentDistance = getClassOf("segmentDistances", "equals")(context)
 
-#documentDistancesFilters
+#choix des documentDistancesFilters
     documentDistanceFilterH = getClassOf("documentDistancesFilters", "hungarian")({})
     documentDistanceFilterC = getClassOf("documentDistancesFilters", "convolve")(context)
     documentDistanceFilterT = getClassOf("documentDistancesFilters", "threshold")(context)
 
-#documentDistancesFilters
+#choix du documentDistance
     documentDistance = getClassOf("documentDistances", "sum")({})
 
 #    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
@@ -118,16 +136,17 @@ def main():
 
     print "Filtering documents..."
     filtered_corpus = []
-    filtered_corpus = initial_corpus
-#    for document in initial_corpus:
-#        filtered_document = documentFilter(document)
-#        filtered_corpus.append(filtered_document)
+    for document in initial_corpus:
+      filtered_document = document
+      for f in filters:
+        filtered_document = f(filtered_document)
+      filtered_corpus.append(filtered_document)
 
     print "Segmentation..."
     segmented_corpus = []
     for document in filtered_corpus:
-        segmented_document = documentSegmenter(document)
-        segmented_corpus.append(segmented_document)
+      segmented_document = documentSegmenter(document)
+      segmented_corpus.append(segmented_document)
 
 #    for document in segmented_corpus :
 #      print document.str_verbose()    
