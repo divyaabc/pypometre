@@ -59,7 +59,7 @@ class DistMatrix(UserList.UserList):
 class Document:
     def __init__(self, fileName):
         self._fileName = fileName
-        self._segmentation = None
+        self._segmentation = []
         content = open(fileName).read()
         print str(self)
         f = subprocess.Popen(['file','-b','-i',fileName], stdout=subprocess.PIPE)

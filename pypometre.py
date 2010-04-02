@@ -5,6 +5,8 @@ from dataStructures import *
 import Image
 import numpy
 from optparse import OptionParser
+import types
+
 
 #prend une matrice de distance entre segment et l'ecrit au format png dans le fichier _path
 def matrix2image(_matrix,_path):
@@ -45,12 +47,33 @@ def read_list_arg1(option, opt, value, parser):
 def read_list_arg2(option, opt, value, parser):
   setattr(parser.values, option.dest, value.split(':'))
 
+def get_signature(option, mapAlias) :
+  dict_option = eval(str(option))
+  list_keys = dict_option.keys()
+  list_keys.sort()
+  sign = ""
+  for module in list_keys :
+    if module != "fileout" and module != "verbose":
+      sign += str(module) 
+      if type(dict_option[module]) == types.ListType :
+        for v in dict_option[module] :
+          if mapAlias.has_key(module) :
+            if mapAlias[module].has_key(v) :
+              v =mapAlias[module][v]
+          sign += "," + v 
+      else :
+        sign += "," + dict_option[module]
+      sign += "|"
+  sign = sign[0:-1]
+  return sign
+
 #fonction main
 def main():
     parser = OptionParser()
     parser.add_option(
       "-o", "--fileout", dest="fileout", default = "out.js",
       help="write report to the json file FILEOUT [default -o out.js]", metavar="FILEOUT")
+
     parser.add_option(
       "-q", "--quiet", action="store_false", dest="verbose", default=True,
       help="don't print status messages to stdout" )
@@ -64,7 +87,7 @@ def main():
     parser.add_option(
       "-c", "--segmenter", dest="segmenter", default = ["l","1"],
       type = "string", action = "callback", callback = read_list_arg2,
-      help="use de segmenter SEG [default : -c l:1] Values : {c:[0-9], l:[0-9]}",
+      help="use de segmenter SEG [default : -c l:1] Values : {c:[0-9], l:[0-9], a}",
       metavar="SEG")
 
     parser.add_option(
@@ -84,55 +107,55 @@ def main():
       help="compute the distance DOCDIST on the segment matrix [default : -d sum]" +
            "Values : {sum}", metavar="DOCDIST")
 
-
     (opt_options, opt_args) = parser.parse_args()
     opt_fileout = opt_options.fileout
+
+    mapAlias = {
+      "segmenter" : {
+        "l":"nline", "c":"nchar", "a" : "all"
+      },
+
+      "segmentDistance" : {
+        "lv":"levenshtein", "ie":"innerEntropy", "j":"jaro",
+        "jw":"jaro_winkler", "eq":"equals"
+      },
+    
+      "documentDistanceFilter" : {
+        "h":"hungarian", "c":"convolve", "t":"threshold"
+      }
+    }
+
+    signature = get_signature(opt_options,mapAlias)
 
     context = {}
     context["convolve"] = getMatrixId(5)
     context["threshold"] = (0.3,0.7)
-    context["segmenter_n"] = int(opt_options.segmenter[1])
+
+    if len(opt_options.segmenter) > 1 :
+      context["segmenter_n"] = int(opt_options.segmenter[1])
+
 #choix du documentFilter
-
     filters=[ getClassOf("documentFilters",x)(context) for x in opt_options.documentFilter]
-
 #     documentFilter = getClassOf("documentFilters", "t")(context)
 #     documentFilter = getClassOf("documentFilters", "s")(context)
 
 #choix du documentSegmenter
-
-    segmenterMap = {
-      "l":"nline",
-      "c":"nchar"
-    }
+    segmenterMap = mapAlias['segmenter']
     if segmenterMap.has_key(opt_options.segmenter[0]):
       documentSegmenter = getClassOf("documentSegmenters", segmenterMap[opt_options.segmenter[0]])(context)
     else:
       documentSegmenter = getClassOf("documentSegmenters", opt_options.segmenter[0])(context)
 
 #choix du segmentDistance
-    segDistMap = {
-      "lv":"levenshtein",
-      "ie":"innerEntropy",
-      "j":"jaro",
-      "jw":"jaro_winkler",
-      "eq":"equals"
-    }
+    segDistMap = mapAlias['segmentDistance']
     if segDistMap.has_key(opt_options.segmentDistance):
       segmentDistance = getClassOf("segmentDistances", segDistMap[opt_options.segmentDistance])(context)
     else:
       segmentDistance = getClassOf("segmentDistances", opt_options.segmentDistance)(context)
 
 #choix des documentDistancesFilters
-
-    docDistFiltMap = {
-      "h":"hungarian",
-      "c":"convolve",
-      "t":"threshold"
-    }
-
+    docDistFiltMap = mapAlias['documentDistanceFilter']
     documentDistanceFilters = []
-
     for x in opt_options.documentDistanceFilter :
       if docDistFiltMap.has_key(x) :
         documentDistanceFilters.append(getClassOf("documentDistancesFilters",docDistFiltMap[x])(context))
@@ -189,11 +212,8 @@ def main():
 
             matrix = matrix.convert2numpy()
 
-            for f in documentDistanceFilters :
-              matrix = f(matrix)
-#            path  = "./log/documentDistances/"
-#            path += "./distance_" + name_doc1 + "_" + name_doc2 + ".png"
-#            matrix2image(matrix_threshold,path)
+            for filter in documentDistanceFilters :
+              matrix = filter(matrix)
 
             print "   * document distance"
             distance = documentDistance(matrix)
@@ -202,7 +222,7 @@ def main():
             documents_distances.set(i, j, distance)
             documents_distances.set(j, i, distance)
 
-    print_json = '{"filenames" : \n  '
+    print_json = '{"signature" : \'' + signature + '\',\n "filenames" : \n  '
     list_str_document = []
     for document in segmented_corpus :
       list_str_document.append(str(document)) 
@@ -210,7 +230,7 @@ def main():
     print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
 
     print
-    print "---> " + opt_options.fileout
+    print ">> " + opt_options.fileout
 
     file_out = open(opt_options.fileout,'w')
     file_out.write(print_json)

@@ -30,7 +30,6 @@ class Segmenter_RegExp(Segmenter):
     def process(self, document):
         import re
         text = document.getContent()
-
 #        text = unicode(text,'utf-8')
         len_text = len(text)
         regExp = re.compile(self.getRegExp(), re.M)
