@@ -58,7 +58,8 @@ def main():
     parser.add_option(
       "-t", "--filter", dest= "documentFilter", default = ["t"],
       type = "string", action = "callback", callback = read_list_arg1,
-      help="FILTER applied on each document [default : -t t] (-t f1,f2,f1 will apply f1 then f2 and f1)", metavar="FILTER")
+      help="FILTER applied on each document [default : -t t] (-t f1,f2,f1 will apply f1 then f2 and f1) "+
+           "Values : {t, s}", metavar="FILTER")
 
     parser.add_option(
       "-c", "--segmenter", dest="segmenter", default = ["l","1"],
@@ -75,7 +76,7 @@ def main():
     parser.add_option(
       "-l", "--documentDistanceFilter", dest="documentDistanceFilter", default = ["h","c","t"],
       type = "string", action = "callback", callback = read_list_arg1,
-      help="DOCDISTFILTER applied on the segment matrix [default : -l hct] (-l f1,f2,f1 will apply f1 then f2 and f1) "+
+      help="DOCDISTFILTER applied on the segment matrix [default : -l h,c,t] (-l f1,f2,f1 will apply f1 then f2 and f1) "+
            "Values : {h|hungarian, t|threshold, c|convolute}", metavar="DOCDISTFILTER")
 
     parser.add_option(
@@ -86,9 +87,6 @@ def main():
 
     (opt_options, opt_args) = parser.parse_args()
     opt_fileout = opt_options.fileout
-
-    print opt_options
-
 
     context = {}
     context["convolve"] = getMatrixId(5)
@@ -143,7 +141,6 @@ def main():
 
 #choix du documentDistance
     documentDistance = getClassOf("documentDistances", opt_options.documentDistance)(context)
-#    documentDistance = getClassOf("documentDistances", "sum")({})
 
 #    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
 
