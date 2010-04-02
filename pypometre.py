@@ -48,37 +48,46 @@ def read_list_arg2(option, opt, value, parser):
 #fonction main
 def main():
     parser = OptionParser()
-    parser.add_option("-o", "--file", dest="fileout", default = "out.js",
-                       help="write report to FILEOUT", metavar="FILEOUT")
-    parser.add_option("-q", "--quiet",
-                       action="store_false", dest="verbose", default=True,
-                       help="don't print status messages to stdout")
+    parser.add_option(
+      "-o", "--fileout", dest="fileout", default = "out.js",
+      help="write report to the json file FILEOUT [default -o out.js]", metavar="FILEOUT")
+    parser.add_option(
+      "-q", "--quiet", action="store_false", dest="verbose", default=True,
+      help="don't print status messages to stdout" )
 
+    parser.add_option(
+      "-t", "--filter", dest= "documentFilter", default = ["t"],
+      type = "string", action = "callback", callback = read_list_arg1,
+      help="FILTER applied on each document [default : -t t] (-t f1,f2,f1 will apply f1 then f2 and f1)", metavar="FILTER")
 
-    parser.add_option("-t", "--filter", dest="documentFilter", default = ["t"],
-                       type = "string", action = "callback", callback = read_list_arg1,
-                       help="FILTER applied on each document (-t f1,f2,f1 will apply f1 then f2 and f1)", metavar="FILTER")
+    parser.add_option(
+      "-c", "--segmenter", dest="segmenter", default = ["l","1"],
+      type = "string", action = "callback", callback = read_list_arg2,
+      help="use de segmenter SEG [default : -c l:1] Values : {c:[0-9], l:[0-9]}",
+      metavar="SEG")
 
-    parser.add_option("-c", "--segmenter", dest="segmenter", default = ["l","1"],
-                       type = "string", action = "callback", callback = read_list_arg2,
-                       help="use de segmenter SEG", metavar="SEG")
+    parser.add_option(
+      "-s", "--segmentDistance", dest="segmentDistance", default = "levenshtein",
+      help='use de distance between segments SEGDIST [default : -s lv] ' +
+           'Values : {lv|levenshtein, ie|innerEntropy, j|jaro, jw|jaro_winkler, eq|equals}',
+      metavar="SEGDIST")
 
-    parser.add_option("-s", "--segmentDistance", dest="segmentDistance", default = "levenshtein",
-                       help="use de distance between segments SEGDIST (lv: levenshtein, ie: inner entropy, j: jaro, jw: jaro winkler, eq: equals)", metavar="SEGDIST")
+    parser.add_option(
+      "-l", "--documentDistanceFilter", dest="documentDistanceFilter", default = ["h","c","t"],
+      type = "string", action = "callback", callback = read_list_arg1,
+      help="DOCDISTFILTER applied on the segment matrix [default : -l hct] (-l f1,f2,f1 will apply f1 then f2 and f1) "+
+           "Values : {h|hungarian, t|threshold, c|convolute}", metavar="DOCDISTFILTER")
 
-    parser.add_option("-l", "--documentDistanceFilter", dest="documentDistanceFilter",
-                       default = ["h"],
-                       type = "string", action = "callback", callback = read_list_arg1,
-                       help="DOCDISTFILTER applied on the segment matrix (-l f1,f2,f1 will apply f1 then f2 and f1)", metavar="DOCDISTFILTER")
-
-
-    parser.add_option("-d", "--documentDistance", dest="documentDistance", default = "sum",
-                       help="compute the distance DOCDIST on the segment matrix", metavar="DOCDIST")
+    parser.add_option(
+      "-d", "--documentDistance", dest="documentDistance", default = "sum",
+      help="compute the distance DOCDIST on the segment matrix [default : -d sum]" +
+           "Values : {sum}", metavar="DOCDIST")
 
 
     (opt_options, opt_args) = parser.parse_args()
     opt_fileout = opt_options.fileout
 
+    print opt_options
 
 
     context = {}
@@ -94,37 +103,47 @@ def main():
 
 #choix du documentSegmenter
 
-    segmenterMap = {"l":"nline","c":"nchar"}
+    segmenterMap = {
+      "l":"nline",
+      "c":"nchar"
+    }
     if segmenterMap.has_key(opt_options.segmenter[0]):
       documentSegmenter = getClassOf("documentSegmenters", segmenterMap[opt_options.segmenter[0]])(context)
     else:
       documentSegmenter = getClassOf("documentSegmenters", opt_options.segmenter[0])(context)
 
-    #documentSegmenter = getClassOf("documentSegmenters", "nline")(1)
-    #documentSegmenter = getClassOf("documentSegmenters", "newline")(context)
-    #documentSegmenter = getClassOf("documentSegmenters", "nchar")(1)
-
 #choix du segmentDistance
-
-    segDistMap = {"lv":"levenshtein","ie":"innerEntropy","j":"jaro","jw":"jaro_winkler","eq":"equals"}
+    segDistMap = {
+      "lv":"levenshtein",
+      "ie":"innerEntropy",
+      "j":"jaro",
+      "jw":"jaro_winkler",
+      "eq":"equals"
+    }
     if segDistMap.has_key(opt_options.segmentDistance):
       segmentDistance = getClassOf("segmentDistances", segDistMap[opt_options.segmentDistance])(context)
     else:
       segmentDistance = getClassOf("segmentDistances", opt_options.segmentDistance)(context)
 
-    #segmentDistance = getClassOf("segmentDistances", "innerEntropy")(context)
-    #segmentDistance = getClassOf("segmentDistances", "levenshtein")(context)
-    #segmentDistance = getClassOf("segmentDistances", "jaro")(context)
-    #segmentDistance = getClassOf("segmentDistances", "jaro_winkler")(context)
-    #segmentDistance = getClassOf("segmentDistances", "equals")(context)
-
 #choix des documentDistancesFilters
-    documentDistanceFilterH = getClassOf("documentDistancesFilters", "hungarian")({})
-    documentDistanceFilterC = getClassOf("documentDistancesFilters", "convolve")(context)
-    documentDistanceFilterT = getClassOf("documentDistancesFilters", "threshold")(context)
+
+    docDistFiltMap = {
+      "h":"hungarian",
+      "c":"convolve",
+      "t":"threshold"
+    }
+
+    documentDistanceFilters = []
+
+    for x in opt_options.documentDistanceFilter :
+      if docDistFiltMap.has_key(x) :
+        documentDistanceFilters.append(getClassOf("documentDistancesFilters",docDistFiltMap[x])(context))
+      else:
+        documentDistanceFilters.append(getClassOf("documentDistancesFilters",x)(context))
 
 #choix du documentDistance
-    documentDistance = getClassOf("documentDistances", "sum")({})
+    documentDistance = getClassOf("documentDistances", opt_options.documentDistance)(context)
+#    documentDistance = getClassOf("documentDistances", "sum")({})
 
 #    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
 
@@ -173,20 +192,14 @@ def main():
 
             matrix = matrix.convert2numpy()
 
-            matrix_hungarian = documentDistanceFilterH(matrix)
-            context_hungarian = documentDistanceFilterH._context
-            pairs_hungarian = context_hungarian["pairs"]
-
-            matrix_convolve = documentDistanceFilterC(matrix_hungarian)
-            matrix_threshold = documentDistanceFilterT(matrix_convolve)
-
+            for f in documentDistanceFilters :
+              matrix = f(matrix)
 #            path  = "./log/documentDistances/"
 #            path += "./distance_" + name_doc1 + "_" + name_doc2 + ".png"
 #            matrix2image(matrix_threshold,path)
 
             print "   * document distance"
-            documentDistance._context["pairs"] = pairs_hungarian
-            distance = documentDistance(matrix_threshold)
+            distance = documentDistance(matrix)
             print distance
 
             documents_distances.set(i, j, distance)
