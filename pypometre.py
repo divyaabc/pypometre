@@ -170,8 +170,11 @@ def main():
     print "Creating corpus..."
     initial_corpus = []
     for fileName in opt_args:
+      try:
         content = Document(fileName)
         initial_corpus.append(content)
+      except Exception as e:
+        print e
 
     print "Filtering documents..."
     filtered_corpus = []
