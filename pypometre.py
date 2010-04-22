@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import os, sys
 import pprint
 from dataStructures import *
@@ -39,11 +41,11 @@ def getMatrixId(_n) :
     filter.append(line)
   return filter
 
-#parse des option separee par des ","
+#parse des options separées par des ","
 def read_list_arg1(option, opt, value, parser):
   setattr(parser.values, option.dest, value.split(','))
 
-#parse des option separee par des ":"
+#parse des options separées par des ":"
 def read_list_arg2(option, opt, value, parser):
   setattr(parser.values, option.dest, value.split(':'))
 
@@ -62,7 +64,11 @@ def get_signature(option, mapAlias) :
               v =mapAlias[module][v]
           sign += "," + v 
       else :
-        sign += "," + dict_option[module]
+        if mapAlias.has_key(module) :
+          if mapAlias[module].has_key(dict_option[module]) :
+            sign += "," + mapAlias[module][dict_option[module]]
+        else :
+          sign += "," + dict_option[module]
       sign += "|"
   sign = sign[0:-1]
   return sign
@@ -159,7 +165,7 @@ def main():
     for x in opt_options.documentDistanceFilter :
       if docDistFiltMap.has_key(x) :
         documentDistanceFilters.append(getClassOf("documentDistancesFilters",docDistFiltMap[x])(context))
-      else:
+      else :
         documentDistanceFilters.append(getClassOf("documentDistancesFilters",x)(context))
 
 #choix du documentDistance

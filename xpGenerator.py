@@ -1,52 +1,51 @@
 import glob
 import random
+import string
 
-files = ["limite_commune.shp", "troncon_route.shp"]#, "route500_lambert2.shp"]
+#filter = ["t","s"]
+filter = ["t"]
 
-for f in files:
-    #print f, glob.glob("*.shp")
-    assert (f in glob.glob("*.shp"))
+#segmenter = ["l:1","l:2","l:3","c:10","c:20","c:30"]
+segmenter = ["l:1","l:2","l:3","l:4"]
 
-options_take = ["+take_one_by_class", ""]
-options_filter = ["+filter_convexhull"]
+#segmentDistances = ["lv","ie","j","jw","eq"]
+segmentDistances = ["lv"]
 
-keys = ["jeanmarie", "jacques", "HHH"]
+#documentDistanceFilter = ["h,c,t","t,h,c,t"]
+documentDistanceFilter = ["h,c,t"]
 
-couplesKeys = [
-  "%s %s"%(keys[0], keys[1]), 
-  "%s %s"%(keys[0], keys[2]),
-  "%s %s"%(keys[1], keys[2])
-]
+documentDistance = ["sum"]
 
-nbParts = ["2", "4", "8", "10", "12", "16"]
+glob_corpus = ['./corpus/python1/1*.py']
+corpus = []
+for doc in glob_corpus :
+  corpus.append(" ".join(glob.glob(doc)))
 
-precisionLosses = ["1", "3", "5"]
-
-nbCases = ["10 10", "6 6", "3 3"]
-nbCases_mu = ["20 20"]
-
-nbExperimentsCropping = ["4 4 20"]
 
 all_experiments = {
-  "xp_mu": (files, ('-opt',), precisionLosses, nbCases_mu),
-#  "xp_codageClassCardinality": (files, nbCases),
-#  "xp_correlation2":(files, "1234567890", nbParts, nbCases, ["20"], options_take),
-#  "xp_repartition":(files, "1234567890", nbParts, nbCases)
+  "xp_mu": (('-t',), filter,
+            ('-c',), segmenter,
+            ('-s',), segmentDistances,
+            ('-l',), documentDistanceFilter,
+            ('-d',), documentDistance,
+            corpus)
 }
 
 def print_all_experiments(): 
-    all_xps = []
-    for name, args in all_experiments.iteritems():
-        xps = [["python tatouage.5.py %s"%name]]
-        for lst in args:
-            new_xps = []
-            for xp in xps:
-                for a in lst:
-                    new_xps.append(xp + [a])
-            xps = new_xps
-        all_xps += xps
-    random.shuffle(all_xps)
-    for xp in all_xps:
-        print " ".join(xp)
+  all_xps = []
+  cptout = 0
+  for name, args in all_experiments.iteritems():
+    xps = [["python pypometre.py"]]
+    for lst in args:
+      new_xps = []
+      for xp in xps:
+        for a in lst:
+          new_xps.append(xp + [a])
+      xps = new_xps
+    all_xps += xps
+
+  for i,xp in enumerate(all_xps):
+    xp = xp[0] + ' -o %i.js '%(i) + " ".join(xp[1:])
+    print xp
  
 print_all_experiments()
