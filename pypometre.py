@@ -221,8 +221,14 @@ def main():
 
             matrix = matrix.convert2numpy()
 
-            for filter in documentDistanceFilters :
+            if(opt_options.verbose) :
+              matrix2image(matrix,"./log/documentDistances/"+str(name_doc1)+"_x_"+str(name_doc2)+".png")
+
+            for nb,filter in enumerate(documentDistanceFilters) :
               matrix = filter(matrix)
+              if(opt_options.verbose) :
+                matrix2image(matrix,"./log/documentDistanceFilters/"+str(nb)+"_"+name_doc1+"_x_"+name_doc2+".png")
+
 
             print "   * document distance"
             distance = documentDistance(matrix)

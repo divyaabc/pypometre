@@ -187,7 +187,10 @@ def filter_matrix(matrix, line):
 
 def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_projection):
     steps = matrix_entangled_mean(matrix,nbCls)
+#    print steps
+
     colors = get_hsl(0., 1., steps)
+
 
     if option_projection :
       total = []
@@ -201,11 +204,13 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_proj
     for i, n in enumerate(nodes):
         print >>f,  '<tr>'
         for j in xrange(len(nodes)):
+#          print matrix[(i,j)], 
           if option_projection and (i != j) :
             total[j] += matrix[(i,j)]
           sepTxt = "border-right: 0px solid black; border-bottom: 0px solid black;"
           cls, color = get_color(matrix[(i, j)], steps, colors)
-          print >>f, '<td style="font-size:13px; padding:4px;%sbackground-color:%s;">%6.2f</td>'%(sepTxt, color, matrix[(i, j)])
+          print >>f, '<td style="font-size:13px; padding:4px;%sbackground-color:%s;">%6.3f</td>'%(sepTxt, color, matrix[(i, j)])
+#        print 
         print >>f, '<td style="font-size : 12px;">%s</td>'%names[n]
         print >>f, "</tr>"
     print >>f, "<tr>"
@@ -321,6 +326,7 @@ def main(options):
 
     if(options.verbose) :
       print " - sort document values"
+
     couples = linkage(matrix, dist_max)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
@@ -329,7 +335,9 @@ def main(options):
 ########################################
 #   OPTION : normalisation -n
 ########################################
-    normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
+#    normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
+    normedMatrix = sortedMatrix
+    
     if options.normalize :
       if(options.verbose) :
         print " - normalize each document score"
@@ -344,6 +352,8 @@ def main(options):
 ########################################
 #   OPTION : output mode -m
 ########################################
+#    print separators
+
     if options.mode == "html" :
       print_matrix_as_html(f, names, normedMatrix, sortedNodes, separators, options.nb_class, options.projection)
     elif options.mode == "tex" :
