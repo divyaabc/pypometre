@@ -7,6 +7,7 @@ filter = ["t"]
 
 #segmenter = ["l:1","l:2","l:3","c:10","c:20","c:30"]
 segmenter = ["l:1","l:2","l:3","l:4"]
+#segmenter = ["l:1"]
 
 #segmentDistances = ["lv","ie","j","jw","eq"]
 segmentDistances = ["lv"]
@@ -16,7 +17,8 @@ documentDistanceFilter = ["h,c,t"]
 
 documentDistance = ["sum"]
 
-glob_corpus = ['./corpus/python1/1*.py']
+#glob_corpus = ['./corpus/python1/1*.py']
+glob_corpus = ['./corpus/python1/*.py']
 corpus = []
 for doc in glob_corpus :
   corpus.append(" ".join(glob.glob(doc)))

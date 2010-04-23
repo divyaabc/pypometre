@@ -28,7 +28,7 @@ def matrix_entangled_mean(matrix, n):
     val_max = max(matrix.values())
     val_min = min(matrix.values())
     lst = [(val_min,val_max,n)]
-    result = [2]
+    result = [val_max+1]
     while lst:
         inf,sup,n = lst.pop()
         m = matrix_mean_split(matrix, inf, sup)
@@ -185,12 +185,12 @@ def filter_matrix(matrix, line):
             elif (line == i) or (line == j):
                 matrix[(i, j)] = 0.9999999
 
-def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_projection):
+def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_projection, signature):
     steps = matrix_entangled_mean(matrix,nbCls)
-#    print steps
+    print steps
 
     colors = get_hsl(0., 1., steps)
-
+    print colors
 
     if option_projection :
       total = []
@@ -229,9 +229,20 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_proj
     for n in nodes:
         print >>f, '<td valign="top" style="font-size:12px; padding:0px;">%s</td> '% "<br/>".join(names[n])
     print >>f, "<td></td></tr>"
-
-
     print >>f, "</table>"
+
+    print_signature = ""
+
+    for l1 in signature.split(";") :
+        l2 = l1.split('|')
+        print_signature += "<dl><dt>"+l2[0]+"</dt>"
+        for l3 in l2[1:] :
+            l4 = l3.split(',')
+            print_signature += "<dd><strong>" + l4[0] + "</strong> " + str(l4[1:]) + "</dd>"
+        print_signature += "</dl>"
+
+    print >>f, "%s"%(print_signature)
+
 
 def print_matrix_as_doc(f, names, matrix, nodes, separators, nbCls, option_projection):
   print >>f, "\documentclass[a4paper]{article}"
@@ -321,7 +332,7 @@ def main(options):
     if(options.verbose) :
       print " - read file"
     data = eval(file(inFile).read())
-    names, input = data["filenames"], data["corpus_scores"]
+    names, input, signature = data["filenames"], data["corpus_scores"], data['signature']
     matrix = listList_to_matrix(input)
 
     if(options.verbose) :
@@ -354,8 +365,12 @@ def main(options):
 ########################################
 #    print separators
 
+
+
+
+
     if options.mode == "html" :
-      print_matrix_as_html(f, names, normedMatrix, sortedNodes, separators, options.nb_class, options.projection)
+      print_matrix_as_html(f, names, normedMatrix, sortedNodes, separators, options.nb_class, options.projection, signature)
     elif options.mode == "tex" :
       print_matrix_as_tex(f, names, sortedMatrix, sortedNodes, separators, options.nb_class, options.projection)
     elif options.mode == "doc" :
