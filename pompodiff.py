@@ -37,32 +37,51 @@ def compareChains(c1, c2):
     sum=0
     for i,file1 in enumerate(c1["filenames"]):
         i2 = c2["filenames"].index(file1)
-        #width = i
         for j,file2 in enumerate(c1["filenames"]):
             j2 = c2["filenames"].index(file2)
-            sum+=matrix1[(i,j)]-matrix2[(i2,j2)]
+            sum += matrix1[(i,j)]-matrix2[(i2,j2)]
     return abs(sum)
 
 def main(option):
-    chains=[]
-    length,filenames=len(option.files),option.files
-    corpus_scores=[[0 for i in xrange(length)] for j in xrange(length)]
+    chains = []
+
+    if(option.verbose) :
+      print " - read files : " + str(option.files)
+
+    length,filenames = len(option.files),option.files
+    corpus_scores = [[0 for i in xrange(length)] for j in xrange(length)]
     for i,c in enumerate(option.files):
         chains.append(eval(file(c).read()))
     
     for i,c1 in enumerate(chains):
         for j,c2 in enumerate(chains):
-            corpus_scores[i][j]=compareChains(c1,c2)
-    signatures=[filenames[c]+"|"+i["signature"] for c,i in enumerate(chains)]
-    signature=";".join(signatures)
-    data="{\"signature\":\""+signature+"\", \"filenames\": "+str(filenames) + ", \"corpus_scores\": " + str(corpus_scores)+"}"
+            corpus_scores[i][j] = compareChains(c1,c2)
+    signatures = [filenames[c]+"|"+i["signature"] for c,i in enumerate(chains)]
+    signature = ";".join(signatures)
+    data = "{\"signature\":\""+signature+"\", \"filenames\": "+str(filenames) + ", \"corpus_scores\": " + str(corpus_scores)+"}"
+
+    if(option.verbose) :
+      print " - print in : " + str(option.output)
+
     output = open(option.output,"w") 
     output.write(str(data))
 
 import sys, os
 parser = OptionParser()
+
 parser.add_option("-f", "--files", dest="files",
-                  action="callback", callback=vararg_callback)
-parser.add_option("-o", "--output", dest="output", default="out_test.js")
+                  help = "compare the files FILES, each FILE being a pypometre.py output done with the same corpora but different parameters",
+                  metavar = "FILES", action="callback", callback=vararg_callback)
+
+parser.add_option("-q", "--quiet",
+                   action="store_false", dest="verbose", default=True,
+                   help="don't print status messages to stdout")
+
+parser.add_option("-o", "--output", dest="output", default="report_pompodiff.js")
+
 (opt_options, opt_args) = parser.parse_args()
+
+if(len(opt_args) > 1) :
+  opt_options.files = opt_args
+
 main(opt_options)

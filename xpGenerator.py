@@ -3,26 +3,31 @@ import random
 import string
 
 #filter = ["t","s"]
-filter = ["t"]
+filter = ["t","id"]
+#filter = ["t"]
 
-#segmenter = ["l:1","l:2","l:3","c:10","c:20","c:30"]
-segmenter = ["l:1","l:2","l:3","l:4"]
-#segmenter = ["l:1"]
+#segmenter = ["l:1","l:2","l:3","l:4","c:10","c:20","c:30","c:40"]
+#segmenter = ["c:10","c:20","c:30","c:40"]
+#segmenter = ["l:1","l:2","l:3","l:4"]
+segmenter = ["l:1"]
 
 #segmentDistances = ["lv","ie","j","jw","eq"]
-segmentDistances = ["lv"]
+segmentDistances = ["lv","eq"]
 
 #documentDistanceFilter = ["h,c,t","t,h,c,t"]
 documentDistanceFilter = ["h,c,t"]
+#documentDistanceFilter = ["t,h,c,t"]
 
 documentDistance = ["sum"]
 
-#glob_corpus = ['./corpus/python1/1*.py']
-glob_corpus = ['./corpus/python1/*.py']
+#glob_corpus = ['./corpus/python1/*.py','./corpus/haskell1/*.hs','./corpus/bash1/*.sh','./corpus/bash2/*.sh']
+#glob_corpus = ['./corpus/c_expression_arithmetique/**/*.all']
+glob_corpus = ['./corpus/c_serveur/**/*.all']
+#glob_corpus = ['./corpus/haskell1/*.hs']
+
 corpus = []
 for doc in glob_corpus :
   corpus.append(" ".join(glob.glob(doc)))
-
 
 all_experiments = {
   "xp_mu": (('-t',), filter,
@@ -47,7 +52,7 @@ def print_all_experiments():
     all_xps += xps
 
   for i,xp in enumerate(all_xps):
-    xp = xp[0] + ' -o %i.js '%(i) + " ".join(xp[1:])
+    xp = xp[0] + ' -o %04d.js -q '%(i) + " ".join(xp[1:])
     print xp
  
 print_all_experiments()

@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import math
 from functools import partial
 from optparse import OptionParser
@@ -187,10 +189,7 @@ def filter_matrix(matrix, line):
 
 def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_projection, signature):
     steps = matrix_entangled_mean(matrix,nbCls)
-    print steps
-
     colors = get_hsl(0., 1., steps)
-    print colors
 
     if option_projection :
       total = []
@@ -242,7 +241,6 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_proj
         print_signature += "</dl>"
 
     print >>f, "%s"%(print_signature)
-
 
 def print_matrix_as_doc(f, names, matrix, nodes, separators, nbCls, option_projection):
   print >>f, "\documentclass[a4paper]{article}"
@@ -332,7 +330,7 @@ def main(options):
     if(options.verbose) :
       print " - read file"
     data = eval(file(inFile).read())
-    names, input, signature = data["filenames"], data["corpus_scores"], data['signature']
+    names, input, signature = data["filenames"], data["corpus_scores"], data["signature"]
     matrix = listList_to_matrix(input)
 
     if(options.verbose) :
@@ -341,18 +339,17 @@ def main(options):
     couples = linkage(matrix, dist_max)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
-    sortedMatrix = permute_matrix(matrix, sortedNodes)
+    matrix = permute_matrix(matrix, sortedNodes)
 
 ########################################
 #   OPTION : normalisation -n
 ########################################
 #    normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
-    normedMatrix = sortedMatrix
     
     if options.normalize :
       if(options.verbose) :
         print " - normalize each document score"
-      normedMatrix = normalize_matrix(normedMatrix,sortedNodes)
+      matrix = normalize_matrix(matrix,sortedNodes)
 
 ########################################
 #   OPTION : verbose -q
@@ -364,17 +361,12 @@ def main(options):
 #   OPTION : output mode -m
 ########################################
 #    print separators
-
-
-
-
-
     if options.mode == "html" :
-      print_matrix_as_html(f, names, normedMatrix, sortedNodes, separators, options.nb_class, options.projection, signature)
+      print_matrix_as_html(f, names, matrix, sortedNodes, separators, options.nb_class, options.projection, signature)
     elif options.mode == "tex" :
-      print_matrix_as_tex(f, names, sortedMatrix, sortedNodes, separators, options.nb_class, options.projection)
+      print_matrix_as_tex(f, names, matrix, sortedNodes, separators, options.nb_class, options.projection)
     elif options.mode == "doc" :
-      print_matrix_as_doc(f, names, sortedMatrix, sortedNodes, separators, options.nb_class, options.projection)
+      print_matrix_as_doc(f, names, matrix, sortedNodes, separators, options.nb_class, options.projection)
 
 ########################################
 #   OPTION : verbose -q
@@ -410,4 +402,7 @@ parser.add_option("-c", "--nb_class", dest="nb_class", default = "4", type = "in
                    help="Use a coloration in NBCLASS classes (default = 4)", metavar="NBCLASS")
 
 (opt_options, opt_args) = parser.parse_args()
+if(len(opt_args) > 0) :
+  opt_options.filename = opt_args[0]
+
 main(opt_options)

@@ -17,6 +17,18 @@ def matrix2image(_matrix,_path):
   a_print = a_print.astype(numpy.uint8)
   Image.fromarray(a_print).save(_path)
 
+def squarify(_matrix, _val_fill):
+    if len(_matrix) > len(_matrix[0]):
+      matrix2 = zip(*_matrix)
+    else:
+      matrix2 = zip(*_matrix)
+      matrix2 = zip(*matrix2)
+    len_line = len(matrix2[0])
+    diff = len_line - len(matrix2)
+    for _ in xrange(diff):
+      matrix2.append([_val_fill for _ in xrange(len_line)])
+    return numpy.array(matrix2)
+
 # recupere le fichier mod_name dans le dossier typ et charge Module_name
 def getClassOf(typ, name):
     fileName = "%s.mod_%s"%(typ, name)
@@ -220,14 +232,15 @@ def main():
             print "   * document distance filter"
 
             matrix = matrix.convert2numpy()
+            matrix = squarify(matrix,1)
 
             if(opt_options.verbose) :
-              matrix2image(matrix,"./log/documentDistances/"+str(name_doc1)+"_x_"+str(name_doc2)+".png")
+              matrix2image(matrix,"./log/documentDistances/"+name_doc1+"_x_"+name_doc2+".png")
 
             for nb,filter in enumerate(documentDistanceFilters) :
               matrix = filter(matrix)
               if(opt_options.verbose) :
-                matrix2image(matrix,"./log/documentDistanceFilters/"+str(nb)+"_"+name_doc1+"_x_"+name_doc2+".png")
+                matrix2image(matrix,"./log/documentDistanceFilters/"+name_doc1+"_x_"+name_doc2+"_"+str(nb)+".png")
 
 
             print "   * document distance"

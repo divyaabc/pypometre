@@ -32,15 +32,18 @@ class Segmenter_RegExp(Segmenter):
         text = document.getContent()
 #        text = unicode(text,'utf-8')
         len_text = len(text)
-        regExp = re.compile(self.getRegExp(), re.M)
+#        regExp = re.compile(self.getRegExp(), re.M)
+        regExp = re.compile(self.getRegExp(),re.M|re.DOTALL)
 #        regExp = re.compile("t", re.M)
         start = 0
         end = len_text
         document.initSegmentation()
+#        print self.getRegExp()
         for match in regExp.finditer(text):
           end = match.end()
           length = end - start
           document.addSegment(start, length) 
+#          print "  [%i %i]"%(start,length)
           start = end 
         if end < len_text :
           document.addSegment(start, len_text - start)

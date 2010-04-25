@@ -111,8 +111,8 @@ class Document:
         res  = self._fileName + "\n"
         res += self._content + "\n"
         if self._segmentation != None :
-          for segment in self._segmentation :
-            res += "  "+str(segment) + "\n"
+          for cpt,segment in enumerate(self._segmentation) :
+            res += str(cpt)+":  "+str(segment) + "\n"
 
         return res
 
