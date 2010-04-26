@@ -39,8 +39,8 @@ def compareChains(c1, c2):
         i2 = c2["filenames"].index(file1)
         for j,file2 in enumerate(c1["filenames"]):
             j2 = c2["filenames"].index(file2)
-            sum += matrix1[(i,j)]-matrix2[(i2,j2)]
-    return abs(sum)
+            sum += abs(matrix1[(i,j)]-matrix2[(i2,j2)])
+    return sum
 
 def main(option):
     chains = []
