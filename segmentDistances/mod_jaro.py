@@ -12,8 +12,7 @@ class Module_jaro(distance.Distance):
       len_text2 = len(text2)
       String_test = StringMatcher()
       String_test.set_seqs(text1,text2)
-      dist = String_test.jaro()
-      return 1 - dist
+      return 1 - String_test.jaro()
       return float(dist) / max(len_text1, len_text2)
 
 if __name__ == "__main__":

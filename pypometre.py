@@ -135,7 +135,7 @@ def main():
 
       "segmentDistance" : {
         "lv":"levenshtein", "ie":"innerEntropy", "j":"jaro",
-        "jw":"jaro_winkler", "eq":"equals"
+        "jw":"jaro_winkler", "eq":"equals", "inf":"information"
       },
     
       "documentDistanceFilter" : {
@@ -185,7 +185,8 @@ def main():
 
 #    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
 
-    print "Creating corpus..."
+    if(opt_options.verbose) :
+      print "Creating corpus..."
     initial_corpus = []
     for fileName in opt_args:
       try:
@@ -194,7 +195,8 @@ def main():
       except Exception as e:
         print e
 
-    print "Filtering documents..."
+    if(opt_options.verbose) :
+      print "Filtering documents..."
     filtered_corpus = []
     for document in initial_corpus:
       filtered_document = document
@@ -202,7 +204,8 @@ def main():
         filtered_document = f(filtered_document)
       filtered_corpus.append(filtered_document)
 
-    print "Segmentation..."
+    if(opt_options.verbose) :
+      print "Segmentation..."
     segmented_corpus = []
     for document in filtered_corpus:
       segmented_document = documentSegmenter(document)
@@ -212,7 +215,8 @@ def main():
 #      print document.str_verbose()    
 #    return 0
 
-    print "Building segments distances matrices"
+    if(opt_options.verbose) :
+      print "Building segments distances matrices"
     documents_distances = DistMatrix(len(segmented_corpus), len(segmented_corpus))
     for i, document1 in enumerate(segmented_corpus):
         segLst1 = document1.getSegmentation()
@@ -220,16 +224,19 @@ def main():
         for j, document2 in enumerate(segmented_corpus):
             if j <= i:
                 continue
-            print " * matrix :", document1, document2  
+            if(opt_options.verbose) :
+              print " * matrix :", document1, document2  
             segLst2 = document2.getSegmentation()
             name_doc2 = os.path.split(str(document2))[1]
-            print "   * distance matrix"
+            if(opt_options.verbose) :
+              print "   * distance matrix"
             matrix = DistMatrix(len(segLst1), len(segLst2))
             for x, seg1 in enumerate(segLst1):
                 for y, seg2 in enumerate(segLst2):
                     distance = segmentDistance(seg1, seg2)
                     matrix.set(x, y, distance)
-            print "   * document distance filter"
+            if(opt_options.verbose) :
+              print "   * document distance filter"
 
             matrix = matrix.convert2numpy()
             matrix = squarify(matrix,1)
@@ -243,9 +250,13 @@ def main():
                 matrix2image(matrix,"./log/documentDistanceFilters/"+name_doc1+"_x_"+name_doc2+"_"+str(nb)+".png")
 
 
-            print "   * document distance"
+            if(opt_options.verbose) :
+              print "   * document distance"
             distance = documentDistance(matrix)
-            print distance
+            if(opt_options.verbose) :
+              print "   * distance = " + str(distance)
+            else :
+              print " * ", document1, document2, " : ", distance
 
             documents_distances.set(i, j, distance)
             documents_distances.set(j, i, distance)
@@ -258,7 +269,7 @@ def main():
     print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
 
     print
-    print ">> " + opt_options.fileout
+    print "   * writing : " + opt_options.fileout
 
     file_out = open(opt_options.fileout,'w')
     file_out.write(print_json)

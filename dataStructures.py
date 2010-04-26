@@ -61,18 +61,18 @@ class Document:
         self._fileName = fileName
         self._segmentation = []
         content = open(fileName).read()
-        print str(self)
+#        print str(self)
         f = subprocess.Popen(['file','-b','-i',fileName], stdout=subprocess.PIPE)
         stdout, stderr = f.communicate()
         charset = stdout.split("=")[-1].strip()
-        print charset
+#        print charset
 
         if re.search('unknown',charset) :
           while(1) :
             try : 
               info = chardet.detect(content)
               content_unicode = unicode(content,info['encoding'])
-              print " * Chardet : " + info['encoding']
+#              print " * Chardet : " + info['encoding']
               break
             except UnicodeError, e:
               part = content[e.start:e.end-1] 
@@ -80,11 +80,10 @@ class Document:
             else :
               raise e
         elif re.search('ascii',charset) :
-          print " * File : ascii" 
+#          print " * File : ascii" 
           content_unicode = unicode(content,"ascii")
-          
         else :
-          print " * File : " + str(charset)
+#          print " * File : " + str(charset)
           content_unicode = unicode(content,charset)
 
         self._content = content_unicode.encode('utf-8','replace')
@@ -144,6 +143,4 @@ class Segment:
         #text = self._document.getFilteredContent()
         text = self._document.getContent()
         return text[self._offset:self._offset+self._length]
-
-
 

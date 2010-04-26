@@ -10,20 +10,26 @@ filter = ["t","id"]
 #segmenter = ["c:10","c:20","c:30","c:40"]
 #segmenter = ["l:1","l:2","l:3","l:4"]
 segmenter = ["l:1"]
+#segmenter = ["all"]
 
 #segmentDistances = ["lv","ie","j","jw","eq"]
 segmentDistances = ["lv","eq"]
+#segmentDistances = ["inf"]
 
 #documentDistanceFilter = ["h,c,t","t,h,c,t"]
-documentDistanceFilter = ["h,c,t"]
-#documentDistanceFilter = ["t,h,c,t"]
+#documentDistanceFilter = ["h,c,t"]
+documentDistanceFilter = ["t,h,c,t"]
+#documentDistanceFilter = ["h"]
 
 documentDistance = ["sum"]
 
 #glob_corpus = ['./corpus/python1/*.py','./corpus/haskell1/*.hs','./corpus/bash1/*.sh','./corpus/bash2/*.sh']
 #glob_corpus = ['./corpus/c_expression_arithmetique/**/*.all']
-glob_corpus = ['./corpus/c_serveur/**/*.all']
-#glob_corpus = ['./corpus/haskell1/*.hs']
+#glob_corpus = ['./corpus/c_serveur/**/*.all']
+#glob_corpus = ['./corpus/haskell1/*.hs','./corpus/c_serveur/**/*.all','./corpus/bash1/*.sh']
+glob_corpus = ['./corpus/haskell1/*.hs']
+#glob_corpus = ['./corpus/c_serveur/**/*.all']
+#glob_corpus = ['./corpus/bash1/*.sh']
 
 corpus = []
 for doc in glob_corpus :

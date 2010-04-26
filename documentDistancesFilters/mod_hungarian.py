@@ -9,7 +9,7 @@ class Module_hungarian(documentDistancesFilters.DistanceFilter):
     def process(self, matrixOrig):
         minDim = min(len(matrixOrig), len(matrixOrig[0]))
         maxDim = max(len(matrixOrig), len(matrixOrig[0]))
-      
+
         matrix = squarify(matrixOrig,1)
         a = numpy.array(matrix)
 
@@ -18,7 +18,7 @@ class Module_hungarian(documentDistancesFilters.DistanceFilter):
         a_void.fill(1)
 
         for i, j in enumerate(pairs):
-            if i >= minDim:
+            if i > minDim:
                 break;
             a_void[i][j] = matrix[i][j]
 
