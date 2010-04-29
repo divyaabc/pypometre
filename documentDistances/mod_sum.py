@@ -9,7 +9,7 @@ class Module_sum(documentDistances.Distance):
         pairs =  self._context["pairs"]
         score = 0.0
         for i, j in enumerate(pairs):
-          if i > minDim :
+          if i >= minDim :
             break
           score += matrix[i][j]
 

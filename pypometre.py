@@ -17,18 +17,6 @@ def matrix2image(_matrix,_path):
   a_print = a_print.astype(numpy.uint8)
   Image.fromarray(a_print).save(_path)
 
-def squarify(_matrix, _val_fill):
-    if len(_matrix) > len(_matrix[0]):
-      matrix2 = zip(*_matrix)
-    else:
-      matrix2 = zip(*_matrix)
-      matrix2 = zip(*matrix2)
-    len_line = len(matrix2[0])
-    diff = len_line - len(matrix2)
-    for _ in xrange(diff):
-      matrix2.append([_val_fill for _ in xrange(len_line)])
-    return numpy.array(matrix2)
-
 # recupere le fichier mod_name dans le dossier typ et charge Module_name
 def getClassOf(typ, name):
     fileName = "%s.mod_%s"%(typ, name)
@@ -41,7 +29,7 @@ def getClassOf(typ, name):
 
 # renvoi la matrice identite _n*_n normalise (matrice de convolution)
 def getMatrixId(_n) :
-  filter = []
+  f = []
   val = 1. / _n
   for i in xrange(_n) :
     line = []
@@ -49,9 +37,9 @@ def getMatrixId(_n) :
       if i == j :
         line.append(val)
       else :
-        line.append(0)
-    filter.append(line)
-  return filter
+        line.append(0.)
+    f.append(line)
+  return f
 
 #parse des options separées par des ","
 def read_list_arg1(option, opt, value, parser):
@@ -115,7 +103,7 @@ def main():
       metavar="SEGDIST")
 
     parser.add_option(
-      "-l", "--documentDistanceFilter", dest="documentDistanceFilter", default = ["h","c","t"],
+      "-l", "--documentDistanceFilter", dest="documentDistanceFilter", default = ["h","hc","c","t"],
       type = "string", action = "callback", callback = read_list_arg1,
       help="DOCDISTFILTER applied on the segment matrix [default : -l h,c,t] (-l f1,f2,f1 will apply f1 then f2 and f1) "+
            "Values : {h|hungarian, t|threshold, c|convolute}", metavar="DOCDISTFILTER")
@@ -139,7 +127,8 @@ def main():
       },
     
       "documentDistanceFilter" : {
-        "h":"hungarian", "c":"convolve", "t":"threshold"
+        "h":"hungarian", "c":"convolve", "t":"threshold",
+        "hc":"hungarian_clean"
       }
     }
 
@@ -239,12 +228,12 @@ def main():
               print "   * document distance filter"
 
             matrix = matrix.convert2numpy()
-            matrix = squarify(matrix,1)
 
             if(opt_options.verbose) :
               matrix2image(matrix,"./log/documentDistances/"+name_doc1+"_x_"+name_doc2+".png")
 
             for nb,filter in enumerate(documentDistanceFilters) :
+              print nb, "---->"
               matrix = filter(matrix)
               if(opt_options.verbose) :
                 matrix2image(matrix,"./log/documentDistanceFilters/"+name_doc1+"_x_"+name_doc2+"_"+str(nb)+".png")

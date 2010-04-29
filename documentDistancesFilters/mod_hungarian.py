@@ -10,21 +10,21 @@ class Module_hungarian(documentDistancesFilters.DistanceFilter):
         minDim = min(len(matrixOrig), len(matrixOrig[0]))
         maxDim = max(len(matrixOrig), len(matrixOrig[0]))
 
-        matrix = squarify(matrixOrig,1)
+        matrix = squarify(matrixOrig,1.)
         a = numpy.array(matrix)
-
         pairs = hungarian.lap(a)[0]
+
         a_void = numpy.resize(a, (minDim,maxDim))
-        a_void.fill(1)
+        a_void.fill(1.0)
 
         for i, j in enumerate(pairs):
-            if i > minDim:
+            if i >= minDim:
                 break;
             a_void[i][j] = matrix[i][j]
 
-        self._context["matrix"] = a_void
+#        self._context["matrix"] = a_void
         self._context["pairs"] = pairs
-        return self._context["matrix"]
+        return a_void
 
 
 def squarify(_matrix, _val_fill):
