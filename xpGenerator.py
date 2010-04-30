@@ -4,8 +4,8 @@ import string
 
 #filter = ["t","s"]
 #filter = ["t","id"]
-#filter = ["t"]
-filter = ["id"]
+filter = ["t"]
+#filter = ["id"]
 
 #segmenter = ["l:1","l:2","l:3","l:4","c:10","c:20","c:30","c:40"]
 #segmenter = ["c:10","c:20","c:30","c:40"]
@@ -19,7 +19,9 @@ segmentDistances = ["lv"]
 #segmentDistances = ["inf"]
 
 #documentDistanceFilter = ["h,c,t","t,h,c,t"]
-documentDistanceFilter = ["h,c,t"]
+#documentDistanceFilter = ["h,c,t","h,hc,c,t"]
+#documentDistanceFilter = ["h,c,t"]
+documentDistanceFilter = ["c,h,hc,c,t"]
 #documentDistanceFilter = ["t,h,c,t"]
 #documentDistanceFilter = ["h"]
 
@@ -28,11 +30,12 @@ documentDistance = ["sum"]
 #glob_corpus = ['./corpus/python1/*.py','./corpus/haskell1/*.hs','./corpus/bash1/*.sh','./corpus/bash2/*.sh']
 #glob_corpus = ['./corpus/c_expression_arithmetique/**/*.all']
 #glob_corpus = ['./corpus/c_serveur/**/*.all']
-#glob_corpus = ['./corpus/haskell1/*.hs','./corpus/c_serveur/**/*.all','./corpus/bash1/*.sh']
+glob_corpus = ['./corpus/haskell1/*.hs','./corpus/c_serveur/**/*.all','./corpus/bash1/*.sh','./corpus/java_p4/*.all']
 #glob_corpus = ['./corpus/haskell1/*.hs']
-glob_corpus = ['./corpus/php1/**/*.php']
+#glob_corpus = ['./corpus/php1/**/*.php']
 #glob_corpus = ['./corpus/c_serveur/**/*.all']
 #glob_corpus = ['./corpus/bash1/*.sh']
+#glob_corpus = ['./corpus/java_p4/*.all']
 
 corpus = []
 for doc in glob_corpus :
@@ -44,6 +47,7 @@ all_experiments = {
             ('-s',), segmentDistances,
             ('-l',), documentDistanceFilter,
             ('-d',), documentDistance,
+#            ('-q',),
             corpus)
 }
 
@@ -61,7 +65,7 @@ def print_all_experiments():
     all_xps += xps
 
   for i,xp in enumerate(all_xps):
-    xp = xp[0] + ' -o %04d.js -q '%(i) + " ".join(xp[1:])
+    xp = xp[0] + ' -o %04d.js '%(i) + " ".join(xp[1:])
     print xp
  
 print_all_experiments()

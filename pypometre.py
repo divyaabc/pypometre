@@ -233,7 +233,6 @@ def main():
               matrix2image(matrix,"./log/documentDistances/"+name_doc1+"_x_"+name_doc2+".png")
 
             for nb,filter in enumerate(documentDistanceFilters) :
-              print nb, "---->"
               matrix = filter(matrix)
               if(opt_options.verbose) :
                 matrix2image(matrix,"./log/documentDistanceFilters/"+name_doc1+"_x_"+name_doc2+"_"+str(nb)+".png")

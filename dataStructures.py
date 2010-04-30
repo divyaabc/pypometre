@@ -47,7 +47,7 @@ class DistMatrix(UserList.UserList):
       matrix2 = []
       for line in self.data :
         matrix2.append(list(line))
-      a = numpy.array(matrix2) 
+      a = numpy.array(matrix2,"float32") 
       return a
 
 #    def __getitem__(self, line):

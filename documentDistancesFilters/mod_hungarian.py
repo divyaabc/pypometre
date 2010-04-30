@@ -11,7 +11,7 @@ class Module_hungarian(documentDistancesFilters.DistanceFilter):
         maxDim = max(len(matrixOrig), len(matrixOrig[0]))
 
         matrix = squarify(matrixOrig,1.)
-        a = numpy.array(matrix)
+        a = numpy.array(matrix,"float32")
         pairs = hungarian.lap(a)[0]
 
         a_void = numpy.resize(a, (minDim,maxDim))
