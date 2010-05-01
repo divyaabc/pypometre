@@ -13,13 +13,10 @@ class Module_threshold(documentDistancesFilters.DistanceFilter):
           for j,val in enumerate(line) :
             if val < self._context["threshold"][0] :
               a_seuil[i][j]  = 0
-            elif val > self._context["threshold"][1] :
+            if val > self._context["threshold"][1] :
               a_seuil[i][j]  = 1
             else :
-#              print "=", val, self._context["threshold"]
               a_seuil[i][j] = val
 
         self._context["matrix"] = a_seuil
         return a_seuil
-
-    

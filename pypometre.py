@@ -41,6 +41,22 @@ def getMatrixId(_n) :
     f.append(line)
   return f
 
+
+def getMatrixCenter(_n) :
+  f = []
+  val = 1. / (_n - 1)
+  for i in xrange(_n) :
+    line = []
+    for j in xrange(_n) :
+      if i == j :
+        line.append(val)
+      else :
+        line.append(0.)
+    f.append(line)
+  c = int(_n/2) + 1
+  f[c][c] = 0
+  return f
+
 #parse des options separées par des ","
 def read_list_arg1(option, opt, value, parser):
   setattr(parser.values, option.dest, value.split(','))
@@ -135,8 +151,10 @@ def main():
     signature = get_signature(opt_options,mapAlias)
 
     context = {}
-    context["convolve"] = getMatrixId(5)
-    context["threshold"] = (0.3,0.7)
+    matrix_id = getMatrixId(5)
+#    matrix_id = getMatrixCenter(5)
+    context["convolve"] = matrix_id
+    context["threshold"] = (0.0,0.7)
 
     if len(opt_options.segmenter) > 1 :
       context["segmenter_n"] = int(opt_options.segmenter[1])

@@ -42,10 +42,35 @@ def matrix_entangled_mean(matrix, n):
     result.sort()
     return result
 
+def matrix_half_entangled_mean(matrix, n):
+    val_max = max(matrix.values())
+    val_min = min(matrix.values())
+    lst = [(val_min,val_max,n)]
+    result = [val_max+1]
+    while lst:
+        inf,sup,n = lst.pop()
+        m = matrix_mean_split(matrix, inf, sup)
+        result.append(m)
+        if n == 1:
+            continue
+        lst.append((inf,m,n-1))
+        #lst.append((m,sup,n-1))
+    result.sort()
+    return result
+
+
 def get_hsl(min, max, steps):
     colors = []
     for s in xrange(len(steps)):
         colors.append(get_color_html(((max-min)*s)/len(steps) + min))
+    return colors
+
+
+def get_half_hsl(min, max, steps):
+    colors = []
+    for s in xrange(len(steps)):
+      colors.append(get_color_html(1./(2**s)))
+    colors.reverse()
     return colors
 
 def get_hsb(min, max, steps):
@@ -188,8 +213,10 @@ def filter_matrix(matrix, line):
                 matrix[(i, j)] = 0.9999999
 
 def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_projection, signature):
-    steps = matrix_entangled_mean(matrix,nbCls)
-    colors = get_hsl(0., 1., steps)
+#    steps = matrix_entangled_mean(matrix,nbCls)
+    steps = matrix_half_entangled_mean(matrix,nbCls)
+#    colors = get_hsl(0, 1., steps)
+    colors = get_half_hsl(0, 1., steps)
 
     if option_projection :
       total = []

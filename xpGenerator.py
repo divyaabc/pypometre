@@ -22,6 +22,7 @@ segmentDistances = ["lv"]
 #documentDistanceFilter = ["h,c,t","h,hc,c,t"]
 #documentDistanceFilter = ["h,c,t"]
 documentDistanceFilter = ["c,h,hc,c,t"]
+#documentDistanceFilter = ["c,h,hc,c,t,c,t","c,h,hc,c,t,c,t,c,t","c,h,hc,c,t,c,t,c,t,c,t","c,h,hc,c,t,c,t,c,t,c,t,c,t"]
 #documentDistanceFilter = ["t,h,c,t"]
 #documentDistanceFilter = ["h"]
 
@@ -30,10 +31,11 @@ documentDistance = ["sum"]
 #glob_corpus = ['./corpus/python1/*.py','./corpus/haskell1/*.hs','./corpus/bash1/*.sh','./corpus/bash2/*.sh']
 #glob_corpus = ['./corpus/c_expression_arithmetique/**/*.all']
 #glob_corpus = ['./corpus/c_serveur/**/*.all']
-glob_corpus = ['./corpus/haskell1/*.hs','./corpus/c_serveur/**/*.all','./corpus/bash1/*.sh','./corpus/java_p4/*.all']
+glob_corpus = ['./corpus/haskell1/*.hs','./corpus/c_serveur/**/*.all','./corpus/bash1/*.sh']
 #glob_corpus = ['./corpus/haskell1/*.hs']
 #glob_corpus = ['./corpus/php1/**/*.php']
 #glob_corpus = ['./corpus/c_serveur/**/*.all']
+#glob_corpus = ['./corpus/c_arbre/**/*.all']
 #glob_corpus = ['./corpus/bash1/*.sh']
 #glob_corpus = ['./corpus/java_p4/*.all']
 
@@ -47,7 +49,7 @@ all_experiments = {
             ('-s',), segmentDistances,
             ('-l',), documentDistanceFilter,
             ('-d',), documentDistance,
-#            ('-q',),
+            ('-q',),
             corpus)
 }
 
