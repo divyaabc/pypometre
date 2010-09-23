@@ -30,7 +30,7 @@ def matrix_entangled_mean(matrix, n):
     val_max = max(matrix.values())
     val_min = min(matrix.values())
     lst = [(val_min,val_max,n)]
-    result = [val_max+1]
+    result = []
     while lst:
         inf,sup,n = lst.pop()
         m = matrix_mean_split(matrix, inf, sup)
@@ -46,7 +46,7 @@ def matrix_half_entangled_mean(matrix, n):
     val_max = max(matrix.values())
     val_min = min(matrix.values())
     lst = [(val_min,val_max,n)]
-    result = [val_max+1]
+    result = []
     while lst:
         inf,sup,n = lst.pop()
         m = matrix_mean_split(matrix, inf, sup)
@@ -63,6 +63,7 @@ def get_hsl(min, max, steps):
     colors = []
     for s in xrange(len(steps)):
         colors.append(get_color_html(((max-min)*s)/len(steps) + min))
+    colors.append(get_color_html(1.0))
     return colors
 
 
@@ -70,6 +71,7 @@ def get_half_hsl(min, max, steps):
     colors = []
     for s in xrange(len(steps)):
       colors.append(get_color_html(1./(2**s)))
+    colors.append(get_color_html(0.0))
     colors.reverse()
     return colors
 
@@ -87,9 +89,9 @@ def get_color_html(r):
 
 def get_color(v, steps, colors):
     for i, (s, c) in enumerate(zip(steps, colors)):
-        if v<s: 
+        if v<=s: 
             return i, c
-    return 0, "white"
+    return i+1, colors[-1]
 
 def normalize_matrix(matrix, nodes) :
   mx = 0
@@ -212,11 +214,24 @@ def filter_matrix(matrix, line):
             elif (line == i) or (line == j):
                 matrix[(i, j)] = 0.9999999
 
-def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_projection, signature):
+def boris_classifier(matrix, threshold):
+    nbColumns = math.sqrt(len(matrix)) 
+    N = (len(matrix)-nbColumns) / 2.0 
+    ACC = (sum(matrix.itervalues()) / (2.0*N))
+    SG = 1 - .95
+    SI = ACC+((1.0-ACC) * SG)   
+    steps = [SI]
+    return steps
+
+def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature):
 #    steps = matrix_entangled_mean(matrix,nbCls)
-    steps = matrix_half_entangled_mean(matrix,nbCls)
+    #steps = matrix_half_entangled_mean(matrix,nbCls)
+    #mean = matrix_mean(matrix) / 2
+    steps = classifier(matrix)
+
+    #steps = [half_mean /  ]
 #    colors = get_hsl(0, 1., steps)
-    colors = get_half_hsl(0, 1., steps)
+    colors = coloration(0, 1., steps)
 
     if option_projection :
       total = []
@@ -269,7 +284,7 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, nbCls, option_proj
 
     print >>f, "%s"%(print_signature)
 
-def print_matrix_as_doc(f, names, matrix, nodes, separators, nbCls, option_projection):
+def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, coloration, option_projection):
   print >>f, "\documentclass[a4paper]{article}"
   print >>f, "\usepackage[utf8]{inputenc}"
   print >>f, "\usepackage[T1]{fontenc}" 
@@ -278,14 +293,16 @@ def print_matrix_as_doc(f, names, matrix, nodes, separators, nbCls, option_proje
   print >>f, "\usepackage[table]{xcolor}"
   print >>f, '\\begin{document}'
 
-  print_matrix_as_tex(f, names, matrix, nodes, separators, nbCls, option_projection)
+  print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, option_projection)
 
   print >>f, "\end{document}"
 
 
-def print_matrix_as_tex(f, names, matrix, nodes, separators, nbCls, option_projection):
-    steps = matrix_entangled_mean(matrix,nbCls)
-    colors = get_hsb(0., 1., steps)
+def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection):
+
+    steps = classifier(matrix)
+    #steps = matrix_entangled_mean(matrix,nbCls)
+    colors = coloration(0., 1., steps)
     descript_col = "|r|"
     first_line = "  &"
 
@@ -387,13 +404,18 @@ def main(options):
 ########################################
 #   OPTION : output mode -m
 ########################################
+    classifier, coloration = (lambda m: boris_classifier(m, .85)), get_hsl 
+    #classifier, coloration = (lambda m: matrix_half_entangled_mean(m,options.nb_class)), get_half_hsl
+    #classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
 #    print separators
     if options.mode == "html" :
-      print_matrix_as_html(f, names, matrix, sortedNodes, separators, options.nb_class, options.projection, signature)
+      printer = print_matrix_as_html
     elif options.mode == "tex" :
-      print_matrix_as_tex(f, names, matrix, sortedNodes, separators, options.nb_class, options.projection)
+      printer = print_matrix_as_tex
     elif options.mode == "doc" :
-      print_matrix_as_doc(f, names, matrix, sortedNodes, separators, options.nb_class, options.projection)
+      printer = print_matrix_as_doc
+
+    printer(f, names, matrix, sortedNodes, separators, classifier, coloration, options.projection, signature)
 
 ########################################
 #   OPTION : verbose -q
