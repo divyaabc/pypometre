@@ -215,12 +215,12 @@ def filter_matrix(matrix, line):
                 matrix[(i, j)] = 0.9999999
 
 def boris_classifier(matrix, threshold):
-    nbColumns = math.sqrt(len(matrix)) 
-    N = (len(matrix)-nbColumns) / 2.0 
-    ACC = (sum(matrix.itervalues()) / (2.0*N))
-    SG = 1 - .95
-    SI = ACC+((1.0-ACC) * SG)   
-    steps = [SI]
+    nbColumns = math.sqrt(len(matrix))
+    N = (len(matrix)-nbColumns) / 2.0
+    ACC = (sum(1.0-x for x in matrix.itervalues() ) / (2.0*N) )
+    SG = threshold
+    SI = ACC + ((1.0-ACC) * SG)
+    steps = [1.0-SI]
     return steps
 
 def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature):
@@ -404,9 +404,9 @@ def main(options):
 ########################################
 #   OPTION : output mode -m
 ########################################
-    classifier, coloration = (lambda m: boris_classifier(m, .85)), get_hsl 
+    #classifier, coloration = (lambda m: boris_classifier(m, .85)), get_hsl 
     #classifier, coloration = (lambda m: matrix_half_entangled_mean(m,options.nb_class)), get_half_hsl
-    #classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
+    classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
 #    print separators
     if options.mode == "html" :
       printer = print_matrix_as_html

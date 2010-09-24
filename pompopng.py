@@ -235,7 +235,7 @@ def filter_matrix(matrix, line):
                 matrix[(i, j)] = 0.9999999
 
 def print_matrix_as_png(names, matrix, nodes, nbCls,outFile):
-    zoom = 4
+    zoom = 2
     steps = matrix_half_entangled_mean(matrix,nbCls)
     colors = get_half_rgb(0, 1., steps)
     h = len(nodes) * zoom
