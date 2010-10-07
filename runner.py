@@ -35,5 +35,9 @@ while 1:
       print >>sys.stderr, "- [t=%6.0f]    pid=%8d    dur=%6.0fs"%(time.time()-start_t, pid, time.time() - t)
       print >>sys.stderr, "    %s"%(cmd)
       nbProcesses -= 1
+      if nbProcesses == 0:
+        if nbCmds >= len(allCmds):
+            break
+
     time.sleep(0.01)
 

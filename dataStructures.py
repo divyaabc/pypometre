@@ -1,6 +1,5 @@
 import array
 import UserList
-import chardet
 import numpy
 import subprocess
 import re
@@ -68,22 +67,10 @@ class Document:
 #        print charset
 
         if re.search('unknown',charset) :
-          while(1) :
-            try : 
-              info = chardet.detect(content)
-              content_unicode = unicode(content,info['encoding'])
-#              print " * Chardet : " + info['encoding']
-              break
-            except UnicodeError, e:
-              part = content[e.start:e.end-1] 
-              content = content[0:e.start] + content[e.end:]
-            else :
-              raise e
+          content_unicode = unicode(content,"iso-8859")            
         elif re.search('ascii',charset) :
-#          print " * File : ascii" 
           content_unicode = unicode(content,"ascii")
         else :
-#          print " * File : " + str(charset)
           content_unicode = unicode(content,charset)
 
         self._content = content_unicode.encode('utf-8','replace')

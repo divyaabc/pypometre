@@ -21,15 +21,14 @@ class Filter:
         pass
 
     def preprocess(self, document):
-        print " + Filter :",  document
         self._t0 = time.time()
 
     def process(self, document):   
         raise NotImplementedError()
 
     def postprocess(self, document):
-        print " - Filter :",  document
-        print "   Duration(s) : %.2f"%(time.time() - self._t0)
+        pass
+
 
 class Filter_RegExp(Filter):
     def process(self, document):

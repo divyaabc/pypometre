@@ -1,13 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 import os, sys
 import pprint
 from dataStructures import *
 import Image
 import numpy
-from optparse import OptionParser
-import types
+from pypometre_optparser import opt_parser
+#from optparse import OptionParser
+#import types
 
 
 #prend une matrice de distance entre segment et l'ecrit au format png dans le fichier _path
@@ -19,12 +19,14 @@ def matrix2image(_matrix,_path):
 
 # recupere le fichier mod_name dans le dossier typ et charge Module_name
 def getClassOf(typ, name):
+    if isinstance(name, list):
+        name = name[0]
     fileName = "%s.mod_%s"%(typ, name)
     className = "Module_%s"%(name)
     mod = __import__(fileName, None, None, [className], -1)
     class_ = getattr(mod, className)
-    print fileName, 
-    print class_
+#    print fileName, 
+#    print class_
     return class_
 
 # renvoi la matrice identite _n*_n normalise (matrice de convolution)
@@ -57,14 +59,6 @@ def getMatrixCenter(_n) :
   f[c][c] = 0
   return f
 
-#parse des options separées par des ","
-def read_list_arg1(option, opt, value, parser):
-  setattr(parser.values, option.dest, value.split(','))
-
-#parse des options separées par des ":"
-def read_list_arg2(option, opt, value, parser):
-  setattr(parser.values, option.dest, value.split(':'))
-
 def get_signature(option, mapAlias) :
   dict_option = eval(str(option))
   list_keys = dict_option.keys()
@@ -73,12 +67,12 @@ def get_signature(option, mapAlias) :
   for module in list_keys :
     if module != "fileout" and module != "verbose":
       sign += str(module) 
-      if type(dict_option[module]) == types.ListType :
+      if isinstance(dict_option[module],list): #type(dict_option[module]) == types.ListType :
         for v in dict_option[module] :
           if mapAlias.has_key(module) :
-            if mapAlias[module].has_key(v) :
-              v =mapAlias[module][v]
-          sign += "," + v 
+            if mapAlias[module].has_key(v[0]) :
+              v =mapAlias[module][v[0]]
+          sign += "," + v[0] 
       else :
         if mapAlias.has_key(module) :
           if mapAlias[module].has_key(dict_option[module]) :
@@ -86,50 +80,38 @@ def get_signature(option, mapAlias) :
         else :
           sign += "," + dict_option[module]
       sign += "|"
-  sign = sign[0:-1]
+  sign = sign[:-1]
   return sign
 
-#fonction main
-def main():
-    parser = OptionParser()
-    parser.add_option(
-      "-o", "--fileout", dest="fileout", default = "out.js",
-      help="write report to the json file FILEOUT [default -o out.js]", metavar="FILEOUT")
+def get_cmdLine(option, mapAlias) :
+  dict_option = eval(str(option))
+  list_keys = dict_option.keys()
+  list_keys.sort()
+  sign = ""
+  for module in list_keys :
+    if module != "fileout" and module != "verbose":
+      sign += str(module) 
+      if isinstance(dict_option[module],list): #type(dict_option[module]) == types.ListType :
+        for v in dict_option[module] :
+          if mapAlias.has_key(module) :
+            if mapAlias[module].has_key(v[0]) :
+              v = mapAlias[module][v[0]]
+          sign += "," + ':'.join(v)
+      else :
+        if mapAlias.has_key(module) :
+          if mapAlias[module].has_key(dict_option[module]) :
+            sign += "," + mapAlias[module][dict_option[module]]
+        else :
+          sign += "," + dict_option[module]
+      sign += " "
+  sign = sign[:-1]
+  return sign
 
-    parser.add_option(
-      "-q", "--quiet", action="store_false", dest="verbose", default=True,
-      help="don't print status messages to stdout" )
 
-    parser.add_option(
-      "-t", "--filter", dest= "documentFilter", default = ["t"],
-      type = "string", action = "callback", callback = read_list_arg1,
-      help="FILTER applied on each document [default : -t t] (-t f1,f2,f1 will apply f1 then f2 and f1) "+
-           "Values : {t, s}", metavar="FILTER")
-
-    parser.add_option(
-      "-c", "--segmenter", dest="segmenter", default = ["l","1"],
-      type = "string", action = "callback", callback = read_list_arg2,
-      help="use de segmenter SEG [default : -c l:1] Values : {c:[0-9], l:[0-9], a}",
-      metavar="SEG")
-
-    parser.add_option(
-      "-s", "--segmentDistance", dest="segmentDistance", default = "levenshtein",
-      help='use de distance between segments SEGDIST [default : -s lv] ' +
-           'Values : {lv|levenshtein, ie|innerEntropy, j|jaro, jw|jaro_winkler, eq|equals}',
-      metavar="SEGDIST")
-
-    parser.add_option(
-      "-l", "--documentDistanceFilter", dest="documentDistanceFilter", default = ["h","hc","c","t"],
-      type = "string", action = "callback", callback = read_list_arg1,
-      help="DOCDISTFILTER applied on the segment matrix [default : -l h,c,t] (-l f1,f2,f1 will apply f1 then f2 and f1) "+
-           "Values : {h|hungarian, t|threshold, c|convolute}", metavar="DOCDISTFILTER")
-
-    parser.add_option(
-      "-d", "--documentDistance", dest="documentDistance", default = "sum",
-      help="compute the distance DOCDIST on the segment matrix [default : -d sum]" +
-           "Values : {sum}", metavar="DOCDIST")
-
-    (opt_options, opt_args) = parser.parse_args()
+def main(args=sys.argv[1:]):
+    parser = opt_parser()
+    
+    (opt_options, opt_args) = parser.parse_args(args)
     opt_fileout = opt_options.fileout
 
     mapAlias = {
@@ -144,11 +126,11 @@ def main():
     
       "documentDistanceFilter" : {
         "h":"hungarian", "c":"convolve", "t":"threshold",
-        "hc":"hungarian_clean"
+        "hc":"hungarian_clean", "jv":"lapjv"
       }
     }
 
-    signature = get_signature(opt_options,mapAlias)
+    signature = get_signature(opt_options, mapAlias)
 
     context = {}
     matrix_id = getMatrixId(5)
@@ -166,10 +148,10 @@ def main():
 
 #choix du documentSegmenter
     segmenterMap = mapAlias['segmenter']
-    if segmenterMap.has_key(opt_options.segmenter[0]):
-      documentSegmenter = getClassOf("documentSegmenters", segmenterMap[opt_options.segmenter[0]])(context)
+    if segmenterMap.has_key(opt_options.segmenter[0][0]):
+      documentSegmenter = getClassOf("documentSegmenters", segmenterMap[opt_options.segmenter[0][0]])(context)
     else:
-      documentSegmenter = getClassOf("documentSegmenters", opt_options.segmenter[0])(context)
+      documentSegmenter = getClassOf("documentSegmenters", opt_options.segmenter[0][0])(context)
 
 #choix du segmentDistance
     segDistMap = mapAlias['segmentDistance']
@@ -199,7 +181,7 @@ def main():
       try:
         content = Document(fileName)
         initial_corpus.append(content)
-      except Exception as e:
+      except Exception, e:
         print e
 
     if(opt_options.verbose) :
@@ -258,11 +240,13 @@ def main():
 
             if(opt_options.verbose) :
               print "   * document distance"
+
             distance = documentDistance(matrix)
+
             if(opt_options.verbose) :
               print "   * distance = " + str(distance)
-            else :
-              print " * ", document1, document2, " : ", distance
+#            else :
+#              print " * ", document1, document2, " : ", distance
 
             documents_distances.set(i, j, distance)
             documents_distances.set(j, i, distance)
@@ -274,11 +258,15 @@ def main():
     print_json += str(list_str_document)
     print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
 
-    print
-    print "   * writing : " + opt_options.fileout
+    if(opt_options.verbose) :
+        print
+        print "   * writing : " + opt_options.fileout
+
 
     file_out = open(opt_options.fileout,'w')
     file_out.write(print_json)
     file_out.close()
+    return print_json
 
-main()
+if __name__ == "__main__":
+    main()

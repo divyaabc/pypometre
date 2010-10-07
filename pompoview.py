@@ -67,11 +67,11 @@ def get_hsl(min, max, steps):
     return colors
 
 
-def get_half_hsl(min, max, steps):
+def get_half_hsl(min, max, steps, color_printer):
     colors = []
     for s in xrange(len(steps)):
-      colors.append(get_color_html(1./(2**s)))
-    colors.append(get_color_html(0.0))
+      colors.append(color_printer(1./(2**s)))
+    colors.append(color_printer(0.0))
     colors.reverse()
     return colors
 
@@ -231,7 +231,7 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, colora
 
     #steps = [half_mean /  ]
 #    colors = get_hsl(0, 1., steps)
-    colors = coloration(0, 1., steps)
+    colors = coloration(0, 1., steps, get_color_html)
 
     if option_projection :
       total = []
@@ -299,7 +299,6 @@ def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, colorat
 
 
 def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection):
-
     steps = classifier(matrix)
     #steps = matrix_entangled_mean(matrix,nbCls)
     colors = coloration(0., 1., steps)
@@ -350,6 +349,31 @@ def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, colorat
 
     print >>f, '\end{tabular}'
 
+def print_matrix_as_png(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature):
+#def print_matrix_as_png(names, matrix, nodes, nbCls,outFile):
+    import Image, ImageColor
+    zoom = 2
+    steps = classifier(matrix)
+    colors = coloration(0, 1., steps, get_color_html)
+    
+    #steps = matrix_half_entangled_mean(matrix,nbCls)
+    #colors = get_half_rgb(0, 1., steps)
+    h = len(nodes) * zoom
+    m = [[[] for _ in xrange(h)] for _ in xrange(h)] #numpy.zeros((h,h,4),numpy.uint8)
+
+    image = Image.new("RGBA", (h, h))
+    for i, n in enumerate(nodes):
+        for j in xrange(len(nodes)):
+          cls, c = get_color(matrix[(i, j)], steps, colors)
+          for k1 in range(zoom) :
+            for k2 in range(zoom) :
+              rgba = ImageColor.getcolor(c, "RGBA")
+              image.putpixel((i*zoom+k1, j*zoom+k2), rgba) 
+              #m[(i*zoom)+k1][(j*zoom)+k2] = (c[0],c[1],c[2],1000)
+    #pilImage = Image.fromarray(m, 'RGBA')
+    image.save(f,"png")
+
+
 def main(options):
     #raise SystemExit(0)
 ########################################
@@ -364,11 +388,10 @@ def main(options):
 
     if options.fileout == "default" :
       outFile = os.path.splitext(inFile)[0] + "." + options.mode
+    elif options.mode == "doc" :
+      outFile = os.path.splitext(options.fileout)[0] + ".doc.tex"
     else :
-      if options.mode == "doc" :
-        outFile = os.path.splitext(options.fileout)[0] + ".doc.tex"
-      else :
-        outFile = os.path.splitext(options.fileout)[0] + "." + options.mode
+      outFile = os.path.splitext(options.fileout)[0] + "." + options.mode
     f = open(outFile, "w")
 
     if(options.verbose) :
@@ -405,8 +428,8 @@ def main(options):
 #   OPTION : output mode -m
 ########################################
     #classifier, coloration = (lambda m: boris_classifier(m, .85)), get_hsl 
-    #classifier, coloration = (lambda m: matrix_half_entangled_mean(m,options.nb_class)), get_half_hsl
-    classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
+    classifier, coloration = (lambda m: matrix_half_entangled_mean(m,options.nb_class)), get_half_hsl
+    #classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
 #    print separators
     if options.mode == "html" :
       printer = print_matrix_as_html
@@ -414,6 +437,8 @@ def main(options):
       printer = print_matrix_as_tex
     elif options.mode == "doc" :
       printer = print_matrix_as_doc
+    elif options.mode == "png" :
+      printer = print_matrix_as_png
 
     printer(f, names, matrix, sortedNodes, separators, classifier, coloration, options.projection, signature)
 
@@ -441,7 +466,7 @@ parser.add_option("-n", "--normalize",
 
 parser.add_option("-m", "--mode",
                    dest="mode", default="html",
-                   help="Output mode : html, tex (prepared for input), doc (prepared for pdflatex)")
+                   help="Output mode : png, html, tex (prepared for input), doc (prepared for pdflatex)")
 
 parser.add_option("-p", "--projection",
                    action="store_true", dest="projection", default=False,

@@ -16,15 +16,13 @@ class Segmenter:
         return document
 
     def preprocess(self, document):
-        print " + Segmentation :",  document
         self._t0 = time.time()
 
     def process(self, document):
         raise NotImplementedError()
 
     def postprocess(self, document):
-        print " - Segmentation :",  document
-        print "   Duration(s) : %.2f"% (time.time() - self._t0)
+        pass
 
 class Segmenter_RegExp(Segmenter):
     def process(self, document):
