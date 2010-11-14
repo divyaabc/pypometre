@@ -5,10 +5,10 @@ import random
 import subprocess
 import time
 import os
-from pypometre_optparser import opt_parser
+from pypometre_optparser import opt_parser_pypoblitz
 
 try: 
-    combinations = itertools.compbinations
+    combinations = itertools.combinations
 except: 
    def combinations(iterable, r):
     # combinations('ABCD', 2) --> AB AC AD BC BD CD
@@ -31,14 +31,14 @@ except:
         yield tuple(pool[i] for i in indices) 
 
 def runProcess(args):
-    f1, f2 = args
-    #d = os.path.realpath('.')
-    import time
-    time.sleep(3)
-    d = open('/etc/hostname').read()
-    open(d, 'w').write(d)
-    #pypometre.main(['', '-q', '-o', '/dev/null', f1, f2])
-    return d
+  f1, f2 = args
+  #d = os.path.realpath('.')
+  import time
+  time.sleep(3)
+  d = open('/etc/hostname').read()
+  open(d, 'w').write(d)
+  #pypometre.main(['', '-q', '-o', '/dev/null', f1, f2])
+  return d
 
 class RunningMethod:
     def __init__(self, args): 
@@ -166,67 +166,52 @@ def fusion_js(lst_f_out, out) :
     corpus = set()
     scores = {}
     for f_out in lst_f_out:
-        data = getFileContent(f_out)
-        signature = data['signature']
-        f1, f2 = data['filenames'] 
-        corpus.add(f1)
-        corpus.add(f2)
-        f1_x_f2 = data['corpus_scores']
-        scores[(f1, f2)] = f1_x_f2[0][1]
-        scores[(f2, f1)] = f1_x_f2[1][0]
+      data = getFileContent(f_out)
+      signature = data['signature']
+      f1, f2 = data['filenames'] 
+      corpus.add(f1)
+      corpus.add(f2)
+      f1_x_f2 = data['corpus_scores']
+      scores[(f1, f2)] = f1_x_f2[0][1]
+      scores[(f2, f1)] = f1_x_f2[1][0]
 
     corpus = list(corpus)
     documents_distances = [[0 for _ in corpus] for _ in corpus]
     for i1, f1 in enumerate(corpus):
-        for i2, f2 in enumerate(corpus):
-            documents_distances[i1][i2] = scores.get((f1, f2), 0.0)
+      for i2, f2 in enumerate(corpus):
+        documents_distances[i1][i2] = scores.get((f1, f2), 0.0)
 
     print_json = '{"signature" : \'' + signature + '\',\n "filenames" : \n  '
-    list_str_document = []
-    for document in corpus :
-        list_str_document.append(str(document))
-    print_json += str(list_str_document)
-    print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
+    list_str_document = [str(document) for document in corpus]
+    print_json += '%s ,\n "corpus_scores" : \n  %s \n}'%(str(list_str_document),str(documents_distances))
     file_out = open("%s.js"%out,'w')
     file_out.write(print_json)
     file_out.close()
 
 def main(args=sys.argv[1:]):
-    parser = opt_parser()
-    #" -t t -c l:1 -s lv -l c,t,h,c,t -d sum"
-    parser.add_option(
-      "-a", "--args", dest="args", default = "",
-      help="dommage")
-    parser.add_option(
-      "-m", "--method", dest="method", default = "fork",
-      help="dommage")
+  parser = opt_parser_pypoblitz()
+  (opt_options, opt_args) = parser.parse_args(args)
+  out = opt_options.fileout
+  #out = "out"
+  files = opt_args#sys.argv[3:]
+  
+  Method = eval("RunningMethod_" + opt_options.method)
+  method = Method(opt_options.args)
 
-    (opt_options, opt_args) = parser.parse_args(args)
-    out = opt_options.fileout
-    files = opt_args#sys.argv[3:]
-    
-    Method = eval("RunningMethod_" + opt_options.method)
-    method = Method(opt_options.args)
+  lst_f_out = []
 
-    lst_f_out = []
-
-    t0 = time.time()
-    try:
-        os.mkdir(out)
-    except:
-        pass
-    for d1, d2 in combinations(files, 2):
-        f_out = "%s/out_%s.js"%(out, hashlib.md5("%s"%random.random()).hexdigest())
-        lst_f_out.append(f_out)
-        method.addCommand(f_out, d1, d2)
-    	#cmd = "python pypometre.py -o %s %s %s >/dev/null | qsub"%(f_out, d1, d2)
-    
-    #for cmd in commands:
-    #    print cmd
-    #    subprocess.call(["/bin/sh", "-c", cmd])
-    method.run()
-    
-    fusion_js(lst_f_out, out)
-    print "Total duration :", time.time() - t0
+  t0 = time.time()
+  try:
+    os.mkdir(out)
+  except:
+    pass
+  for d1, d2 in combinations(files, 2):
+    f_out = "%s/out_%s.js"%(out, hashlib.md5("%s"%random.random()).hexdigest())
+    lst_f_out.append(f_out)
+    method.addCommand(f_out, d1, d2)
+  method.run()
+  
+  fusion_js(lst_f_out, out)
+  print "Total duration :", time.time() - t0
     
 main()    

@@ -5,7 +5,7 @@ import pprint
 from dataStructures import *
 import Image
 import numpy
-from pypometre_optparser import opt_parser
+from pypometre_optparser import opt_parser_pypometre
 #from optparse import OptionParser
 #import types
 
@@ -34,12 +34,7 @@ def getMatrixId(_n) :
   f = []
   val = 1. / _n
   for i in xrange(_n) :
-    line = []
-    for j in xrange(_n) :
-      if i == j :
-        line.append(val)
-      else :
-        line.append(0.)
+    line = [val if(i==j) else 0 for j in xrange(_n)]
     f.append(line)
   return f
 
@@ -48,12 +43,7 @@ def getMatrixCenter(_n) :
   f = []
   val = 1. / (_n - 1)
   for i in xrange(_n) :
-    line = []
-    for j in xrange(_n) :
-      if i == j :
-        line.append(val)
-      else :
-        line.append(0.)
+    line = [val if(i==j) else 0 for j in xrange(_n)]
     f.append(line)
   c = int(_n/2) + 1
   f[c][c] = 0
@@ -109,7 +99,10 @@ def get_cmdLine(option, mapAlias) :
 
 
 def main(args=sys.argv[1:]):
-    parser = opt_parser()
+    path_log1 = "./log/documentDistances"
+    path_log2 = "./log/documentDistanceFilters"
+
+    parser = opt_parser_pypometre()
     
     (opt_options, opt_args) = parser.parse_args(args)
     opt_fileout = opt_options.fileout
@@ -135,6 +128,7 @@ def main(args=sys.argv[1:]):
     context = {}
     matrix_id = getMatrixId(5)
 #    matrix_id = getMatrixCenter(5)
+
     context["convolve"] = matrix_id
     context["threshold"] = (0.0,0.7)
 
@@ -143,8 +137,6 @@ def main(args=sys.argv[1:]):
 
 #choix du documentFilter
     filters=[ getClassOf("documentFilters",x)(context) for x in opt_options.documentFilter]
-#     documentFilter = getClassOf("documentFilters", "t")(context)
-#     documentFilter = getClassOf("documentFilters", "s")(context)
 
 #choix du documentSegmenter
     segmenterMap = mapAlias['segmenter']
@@ -174,8 +166,7 @@ def main(args=sys.argv[1:]):
 
 #    resultsPresenter = getClassOf("resultsPresenters", "coloredAndSortedMatrix")(context)
 
-    if(opt_options.verbose) :
-      print "Creating corpus..."
+    if(opt_options.verbose) : print '[ok] Creating corpus'
     initial_corpus = []
     for fileName in opt_args:
       try:
@@ -184,8 +175,7 @@ def main(args=sys.argv[1:]):
       except Exception, e:
         print e
 
-    if(opt_options.verbose) :
-      print "Filtering documents..."
+    if(opt_options.verbose) : print "[ok] Filtering documents" 
     filtered_corpus = []
     for document in initial_corpus:
       filtered_document = document
@@ -193,75 +183,47 @@ def main(args=sys.argv[1:]):
         filtered_document = f(filtered_document)
       filtered_corpus.append(filtered_document)
 
-    if(opt_options.verbose) :
-      print "Segmentation..."
     segmented_corpus = []
     for document in filtered_corpus:
       segmented_document = documentSegmenter(document)
       segmented_corpus.append(segmented_document)
 
-#    for document in segmented_corpus :
-#      print document.str_verbose()    
-#    return 0
 
-    if(opt_options.verbose) :
-      print "Building segments distances matrices"
+    if(opt_options.verbose) : print "[ok] Building segments distances matrices"
     documents_distances = DistMatrix(len(segmented_corpus), len(segmented_corpus))
     for i, document1 in enumerate(segmented_corpus):
-        segLst1 = document1.getSegmentation()
-        name_doc1 = os.path.split(str(document1))[1]
-        for j, document2 in enumerate(segmented_corpus):
-            if j <= i:
-                continue
-            if(opt_options.verbose) :
-              print " * matrix :", document1, document2  
-            segLst2 = document2.getSegmentation()
-            name_doc2 = os.path.split(str(document2))[1]
-            if(opt_options.verbose) :
-              print "   * distance matrix"
-            matrix = DistMatrix(len(segLst1), len(segLst2))
-            for x, seg1 in enumerate(segLst1):
-                for y, seg2 in enumerate(segLst2):
-                    distance = segmentDistance(seg1, seg2)
-                    matrix.set(x, y, distance)
-            if(opt_options.verbose) :
-              print "   * document distance filter"
+      segLst1 = document1.getSegmentation()
+      name_doc1 = os.path.split(str(document1))[1]
+      for j, document2 in enumerate(segmented_corpus):
+        if j <= i: continue
 
-            matrix = matrix.convert2numpy()
+        segLst2 = document2.getSegmentation()
+        name_doc2 = os.path.split(str(document2))[1]
 
-            if(opt_options.verbose) :
-              matrix2image(matrix,"./log/documentDistances/"+name_doc1+"_x_"+name_doc2+".png")
+        matrix = DistMatrix(len(segLst1), len(segLst2))
+        for x, seg1 in enumerate(segLst1):
+          for y, seg2 in enumerate(segLst2):
+            distance = segmentDistance(seg1, seg2)
+            matrix.set(x, y, distance)
 
-            for nb,filter in enumerate(documentDistanceFilters) :
-              matrix = filter(matrix)
-              if(opt_options.verbose) :
-                matrix2image(matrix,"./log/documentDistanceFilters/"+name_doc1+"_x_"+name_doc2+"_"+str(nb)+".png")
+        matrix = matrix.convert2numpy()
 
+        if(opt_options.verbose) : matrix2image(matrix,"%s/%s_x_%s.png"%(path_log1,name_doc1,name_doc2))
 
-            if(opt_options.verbose) :
-              print "   * document distance"
+        for nb,filter in enumerate(documentDistanceFilters) :
+          matrix = filter(matrix)
+          if(opt_options.verbose) : matrix2image(matrix,"%s/%s_x_%s%i.png"%(path_log2,name_doc1,name_doc2,nb))
 
-            distance = documentDistance(matrix)
+        distance = documentDistance(matrix)
+        if(opt_options.verbose) : print "[ok] distance(%s,%s) = %0.2f "%(document1, document2, distance)
+        documents_distances.set(i, j, distance)
+        documents_distances.set(j, i, distance)
 
-            if(opt_options.verbose) :
-              print "   * distance = " + str(distance)
-#            else :
-#              print " * ", document1, document2, " : ", distance
+    print_json = '{"signature" : \'%s\',\n "filenames" : \n  '%(signature)
+    list_str_document = [str(document) for document in segmented_corpus]
+    print_json += '%s\n,\n "corpus_scores" : \n  %s \n}'%(str(list_str_document),str(documents_distances))
 
-            documents_distances.set(i, j, distance)
-            documents_distances.set(j, i, distance)
-
-    print_json = '{"signature" : \'' + signature + '\',\n "filenames" : \n  '
-    list_str_document = []
-    for document in segmented_corpus :
-      list_str_document.append(str(document)) 
-    print_json += str(list_str_document)
-    print_json += ',\n "corpus_scores" : \n  '+str(documents_distances) + '\n}'
-
-    if(opt_options.verbose) :
-        print
-        print "   * writing : " + opt_options.fileout
-
+    if(opt_options.verbose) : print "[out] writing :", opt_options.fileout
 
     file_out = open(opt_options.fileout,'w')
     file_out.write(print_json)
@@ -270,3 +232,14 @@ def main(args=sys.argv[1:]):
 
 if __name__ == "__main__":
     main()
+
+
+
+#    if(opt_options.verbose) :
+#      print "Segmentation..."
+#            if(opt_options.verbose) :
+#              print "   * document distance"
+#            if(opt_options.verbose) :
+#              print "   * distance = " + str(distance)
+#            else :
+#              print " * ", document1, document2, " : ", distance

@@ -8,12 +8,10 @@ class Module_levenshtein(distance.Distance):
         return self.processText(text1, text2)
 
     def processText(self, text1, text2):
-      len_text1 = len(text1)
-      len_text2 = len(text2)
       String_test = StringMatcher()
       String_test.set_seqs(text1,text2)
       dist = String_test.distance()
-      return float(dist) / max(len_text1, len_text2)
+      return float(dist) / max(len(text1),len(text2))
 
 if __name__ == "__main__":
     module = Module_levenshtein(None)

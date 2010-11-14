@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-
 import math
 from functools import partial
 from optparse import OptionParser
+from pypometre_optparser import opt_parser_pompoview
 
 def avg(l): 
     l = list(l)
@@ -224,36 +224,23 @@ def boris_classifier(matrix, threshold):
     return steps
 
 def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature):
-#    steps = matrix_entangled_mean(matrix,nbCls)
-    #steps = matrix_half_entangled_mean(matrix,nbCls)
-    #mean = matrix_mean(matrix) / 2
     steps = classifier(matrix)
-
-    #steps = [half_mean /  ]
-#    colors = get_hsl(0, 1., steps)
     colors = coloration(0, 1., steps, get_color_html)
 
     if option_projection :
-      total = []
-      cpt = 0
-      for j in xrange(len(nodes)):
-        total.append(0)
-        cpt += 1
-      cpt -= 1
+      total = [0 for _ in xrange(len(nodes))]
+      cpt = len(total) - 1
 
     print >>f, '<table style="collapse:collapse;" cellspacing="0">'
     for i, n in enumerate(nodes):
         print >>f,  '<tr>'
         for j in xrange(len(nodes)):
-#          print matrix[(i,j)], 
           if option_projection and (i != j) :
             total[j] += matrix[(i,j)]
           sepTxt = "border-right: 0px solid black; border-bottom: 0px solid black;"
           cls, color = get_color(matrix[(i, j)], steps, colors)
           print >>f, '<td style="font-size:13px; padding:4px;%sbackground-color:%s;">%6.3f</td>'%(sepTxt, color, matrix[(i, j)])
-#        print 
-        print >>f, '<td style="font-size : 12px;">%s</td>'%names[n]
-        print >>f, "</tr>"
+        print >>f, '<td style="font-size : 12px;">%s</td></tr>'%names[n]
     print >>f, "<tr>"
 
     if option_projection :
@@ -264,13 +251,11 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, colora
         cls, color = get_color(true_val, steps, colors)
         sepTxt = "border: 1px solid black;"
         line_str += '<td style="font-size : 12px; padding:4px;%sbackground-color:%s;">%6.2f</td>'%(sepTxt, color, true_val)
-      print >>f, "%s"%(line_str) 
-      print >>f, "</tr>"
+      print >>f, "%s</tr>"%(line_str) 
 
     for n in nodes:
         print >>f, '<td valign="top" style="font-size:12px; padding:0px;">%s</td> '% "<br/>".join(names[n])
-    print >>f, "<td></td></tr>"
-    print >>f, "</table>"
+    print >>f, "<td></td></tr></table>"
 
     print_signature = ""
 
@@ -300,7 +285,6 @@ def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, colorat
 
 def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection):
     steps = classifier(matrix)
-    #steps = matrix_entangled_mean(matrix,nbCls)
     colors = coloration(0., 1., steps)
     descript_col = "|r|"
     first_line = "  &"
@@ -331,8 +315,7 @@ def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, colorat
               cpt += 1
             line += '%s %.2f & ' % (color,matrix[(i,j)])
         line = line[:len(line)-2] + '\\\\' 
-        print >>f, "%s" % (line)
-        print >>f, '\cline{1-1}'
+        print >>f, "%s\cline{1-1}" % (line)
     print >>f, '\hline'
 
 
@@ -345,33 +328,25 @@ def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, colorat
         line_total += '%s %0.2f & ' % (color, float(val) / (cpt-1))
       line_total = line_total[:len(line_total)-2] + '\\\\' 
       print >>f, "%s" % (line_total)
-    print >>f, '\hline'
-
-    print >>f, '\end{tabular}'
+    print >>f, '\hline\end{tabular}'
 
 def print_matrix_as_png(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature):
-#def print_matrix_as_png(names, matrix, nodes, nbCls,outFile):
-    import Image, ImageColor
-    zoom = 2
-    steps = classifier(matrix)
-    colors = coloration(0, 1., steps, get_color_html)
-    
-    #steps = matrix_half_entangled_mean(matrix,nbCls)
-    #colors = get_half_rgb(0, 1., steps)
-    h = len(nodes) * zoom
-    m = [[[] for _ in xrange(h)] for _ in xrange(h)] #numpy.zeros((h,h,4),numpy.uint8)
+  import Image, ImageColor
+  zoom = 2
+  steps = classifier(matrix)
+  colors = coloration(0, 1., steps, get_color_html)
+  h = len(nodes) * zoom
+  m = [[[] for _ in xrange(h)] for _ in xrange(h)]
 
-    image = Image.new("RGBA", (h, h))
-    for i, n in enumerate(nodes):
-        for j in xrange(len(nodes)):
-          cls, c = get_color(matrix[(i, j)], steps, colors)
-          for k1 in range(zoom) :
-            for k2 in range(zoom) :
-              rgba = ImageColor.getcolor(c, "RGBA")
-              image.putpixel((i*zoom+k1, j*zoom+k2), rgba) 
-              #m[(i*zoom)+k1][(j*zoom)+k2] = (c[0],c[1],c[2],1000)
-    #pilImage = Image.fromarray(m, 'RGBA')
-    image.save(f,"png")
+  image = Image.new("RGBA", (h, h))
+  for i, n in enumerate(nodes):
+    for j in xrange(len(nodes)):
+      cls, c = get_color(matrix[(i, j)], steps, colors)
+      for k1 in range(zoom) :
+        for k2 in range(zoom) :
+          rgba = ImageColor.getcolor(c, "RGBA")
+          image.putpixel((i*zoom+k1, j*zoom+k2), rgba) 
+  image.save(f,"png")
 
 
 def main(options):
@@ -394,14 +369,9 @@ def main(options):
       outFile = os.path.splitext(options.fileout)[0] + "." + options.mode
     f = open(outFile, "w")
 
-    if(options.verbose) :
-      print " - read file"
     data = eval(file(inFile).read())
     names, input, signature = data["filenames"], data["corpus_scores"], data["signature"]
     matrix = listList_to_matrix(input)
-
-    if(options.verbose) :
-      print " - sort document values"
 
     couples = linkage(matrix, dist_max)
     tree = couples_to_tree(couples)
@@ -412,17 +382,11 @@ def main(options):
 #   OPTION : normalisation -n
 ########################################
 #    normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
-    
-    if options.normalize :
-      if(options.verbose) :
-        print " - normalize each document score"
-      matrix = normalize_matrix(matrix,sortedNodes)
+    if options.normalize : matrix = normalize_matrix(matrix,sortedNodes)
 
 ########################################
 #   OPTION : verbose -q
 ########################################
-    if(options.verbose) :
-      print " - draw matrix"
 
 ########################################
 #   OPTION : output mode -m
@@ -449,32 +413,7 @@ def main(options):
       print " - " + "file://" + os.path.join(os.path.abspath("."), outFile)
 
 import sys, os
-parser = OptionParser()
-parser.add_option("-f", "--file", dest="filename", default = "out.js",
-                   help="Write report from FILE", metavar="FILE")
-
-parser.add_option("-o", "--output_file", dest="fileout", default = "default",
-                   help="Write report to FILEOUT (default)", metavar="FILEOUT")
-
-parser.add_option("-q", "--quiet",
-                   action="store_false", dest="verbose", default=True,
-                   help="don't print status messages to stdout")
-
-parser.add_option("-n", "--normalize",
-                   action="store_true", dest="normalize", default=False,
-                   help="Normalize each values of the matrix between [minVal,maxVal] (default = False)")
-
-parser.add_option("-m", "--mode",
-                   dest="mode", default="html",
-                   help="Output mode : png, html, tex (prepared for input), doc (prepared for pdflatex)")
-
-parser.add_option("-p", "--projection",
-                   action="store_true", dest="projection", default=False,
-                   help="Project the values of the matrix on the x-axis : (default = False)")
-
-parser.add_option("-c", "--nb_class", dest="nb_class", default = "4", type = "int",
-                   help="Use a coloration in NBCLASS classes (default = 4)", metavar="NBCLASS")
-
+parser = opt_parser_pompoview()
 (opt_options, opt_args) = parser.parse_args()
 if(len(opt_args) > 0) :
   opt_options.filename = opt_args[0]
