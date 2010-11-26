@@ -306,14 +306,14 @@ int module_binder(const char* args, struct profile* p) {
     const char *s = args;
     while (*s != '\0') {
       if ((*s == 'a' || *s == 'h') && ++h > 1) {
-	fprintf(stderr, "more than one hungarian in docdist profile\n");	
-	return -1;
+        fprintf(stderr, "more than one hungarian in docdist profile\n");	
+        return -1;
       }
       ++s;
     }
     if (!h) {
-	fprintf(stderr, "no hungarian in docdist profile\n");	
-	return -1;
+	  fprintf(stderr, "no hungarian in docdist profile\n");	
+	  return -1;
     }
     profile = strdup(args);
   } else {

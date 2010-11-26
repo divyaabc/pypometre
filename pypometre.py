@@ -219,9 +219,12 @@ def main(args=sys.argv[1:]):
         documents_distances.set(i, j, distance)
         documents_distances.set(j, i, distance)
 
-    print_json = '{"signature" : \'%s\',\n "filenames" : \n  '%(signature)
     list_str_document = [str(document) for document in segmented_corpus]
-    print_json += '%s\n,\n "corpus_scores" : \n  %s \n}'%(str(list_str_document),str(documents_distances))
+    print_json = '''
+{"signature" : \'%s\',\n 
+ "filenames" : %s, \n 
+ "corpus_scores" : \n  %s \n
+}'''%(signature,str(list_str_document),str(documents_distances))
 
     if(opt_options.verbose) : print "[out] writing :", opt_options.fileout
 

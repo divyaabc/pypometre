@@ -223,7 +223,7 @@ def boris_classifier(matrix, threshold):
     steps = [1.0-SI]
     return steps
 
-def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature):
+def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
     steps = classifier(matrix)
     colors = coloration(0, 1., steps, get_color_html)
 
@@ -269,7 +269,7 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, colora
 
     print >>f, "%s"%(print_signature)
 
-def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, coloration, option_projection):
+def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
   print >>f, "\documentclass[a4paper]{article}"
   print >>f, "\usepackage[utf8]{inputenc}"
   print >>f, "\usepackage[T1]{fontenc}" 
@@ -278,20 +278,22 @@ def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, colorat
   print >>f, "\usepackage[table]{xcolor}"
   print >>f, '\\begin{document}'
 
-  print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, option_projection)
+  print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName)
 
   print >>f, "\end{document}"
 
 
-def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection):
+def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
     steps = classifier(matrix)
-    colors = coloration(0., 1., steps)
+    colors = coloration(0., 1., steps, get_color_tex)
     descript_col = "|r|"
     first_line = "  &"
 
     for i,val in enumerate(nodes):
       descript_col += 'c'
-      first_line += ' \\rotatebox{90}{'+str(names[val])+'} &'
+      v = names[val].split('/')[-1]
+      first_line += '%s & '%(v)
+      #first_line += ' \\rotatebox{90}{'+str(names[val])+'} &'
     first_line = '\hline\n' + first_line[:len(first_line)-2] + '\\\\'
 
     print >>f, '\\begin{tabular}{' + descript_col + '|}'
@@ -307,7 +309,9 @@ def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, colorat
     print >>f,  '\hline'
     
     for i, n in enumerate(nodes):
-        line = "%s & " % (names[n])
+        v = names[n].split('/')[-1]
+        line = "%s & " % (v)
+        #line = "%s & " % (names[n])
         for j in xrange(len(nodes)):
             cls, color = get_color(matrix[(i, j)], steps, colors)
             if(option_projection and i != j) :
@@ -330,13 +334,12 @@ def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, colorat
       print >>f, "%s" % (line_total)
     print >>f, '\hline\end{tabular}'
 
-def print_matrix_as_png(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature):
+def print_matrix_as_png(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
   import Image, ImageColor
   zoom = 2
   steps = classifier(matrix)
   colors = coloration(0, 1., steps, get_color_html)
   h = len(nodes) * zoom
-  m = [[[] for _ in xrange(h)] for _ in xrange(h)]
 
   image = Image.new("RGBA", (h, h))
   for i, n in enumerate(nodes):
@@ -348,6 +351,37 @@ def print_matrix_as_png(f, names, matrix, nodes, separators, classifier, colorat
           image.putpixel((i*zoom+k1, j*zoom+k2), rgba) 
   image.save(f,"png")
 
+def print_matrix_as_json(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
+  pngName = getFileName(outFileName, "png")
+  f2 = open(pngName, 'w')
+  print_matrix_as_png(f2, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, pngName)
+  
+  steps = classifier(matrix)
+  colors = coloration(0, 1., steps, get_color_html)
+    
+  fileNames = []
+  for val in nodes:
+      fileNames.append(names[val])
+     
+  m = []
+  col = []
+  for i, n in enumerate(nodes):
+    l = []
+    col_l = []
+    for j in xrange(len(nodes)):
+      cls, c = get_color(matrix[(i, j)], steps, colors)
+      l.append(matrix[(i, j)])
+      col_l.append(c)
+    m.append(l)
+    col.append(col_l)
+  f.write("{'fileNames':%s, 'matrix': %s, 'colors': %s}"%(fileNames, m, col));
+
+def getFileName(inFile, mode, outFile='default') :
+  if mode == "doc": 
+     mode = "doc.tex"
+  if outFile == "default" :
+    return os.path.splitext(inFile)[0] + "." + mode
+  return os.path.splitext(outFile)[0] + "." + mode
 
 def main(options):
     #raise SystemExit(0)
@@ -360,20 +394,17 @@ def main(options):
 #   OPTION : fileout -o
 #   OPTION : mode -m
 ########################################
+    outFile = getFileName(inFile, options.mode, options.fileout)
 
-    if options.fileout == "default" :
-      outFile = os.path.splitext(inFile)[0] + "." + options.mode
-    elif options.mode == "doc" :
-      outFile = os.path.splitext(options.fileout)[0] + ".doc.tex"
-    else :
-      outFile = os.path.splitext(options.fileout)[0] + "." + options.mode
     f = open(outFile, "w")
 
     data = eval(file(inFile).read())
     names, input, signature = data["filenames"], data["corpus_scores"], data["signature"]
     matrix = listList_to_matrix(input)
 
-    couples = linkage(matrix, dist_max)
+#    couples = linkage(matrix, dist_max)
+#    couples = linkage(matrix, dist_min)
+    couples = linkage(matrix, dist_avg)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
     matrix = permute_matrix(matrix, sortedNodes)
@@ -403,8 +434,10 @@ def main(options):
       printer = print_matrix_as_doc
     elif options.mode == "png" :
       printer = print_matrix_as_png
+    elif options.mode == "json" :
+      printer = print_matrix_as_json
 
-    printer(f, names, matrix, sortedNodes, separators, classifier, coloration, options.projection, signature)
+    printer(f, names, matrix, sortedNodes, separators, classifier, coloration, options.projection, signature, outFile)
 
 ########################################
 #   OPTION : verbose -q

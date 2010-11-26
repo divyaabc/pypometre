@@ -5,7 +5,11 @@ class Module_levenshtein(distance.Distance):
     def process(self, seg1, seg2):
         text1 = seg1.getContent() 
         text2 = seg2.getContent() 
-        return self.processText(text1, text2)
+        #print repr(text1)
+        #print repr(text2)
+        d =  self.processText(text1, text2)
+        #print d
+        return d
 
     def processText(self, text1, text2):
       String_test = StringMatcher()
