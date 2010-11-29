@@ -25,8 +25,6 @@ def getClassOf(typ, name):
     className = "Module_%s"%(name)
     mod = __import__(fileName, None, None, [className], -1)
     class_ = getattr(mod, className)
-#    print fileName, 
-#    print class_
     return class_
 
 # renvoi la matrice identite _n*_n normalise (matrice de convolution)
@@ -38,7 +36,6 @@ def getMatrixId(_n) :
     f.append(line)
   return f
 
-
 def getMatrixCenter(_n) :
   f = []
   val = 1. / (_n - 1)
@@ -48,55 +45,6 @@ def getMatrixCenter(_n) :
   c = int(_n/2) + 1
   f[c][c] = 0
   return f
-
-def get_signature(option, mapAlias) :
-  dict_option = eval(str(option))
-  list_keys = dict_option.keys()
-  list_keys.sort()
-  sign = ""
-  for module in list_keys :
-    if module != "fileout" and module != "verbose":
-      sign += str(module) 
-      if isinstance(dict_option[module],list): #type(dict_option[module]) == types.ListType :
-        for v in dict_option[module] :
-          if mapAlias.has_key(module) :
-            if mapAlias[module].has_key(v[0]) :
-              v =mapAlias[module][v[0]]
-          sign += "," + v[0] 
-      else :
-        if mapAlias.has_key(module) :
-          if mapAlias[module].has_key(dict_option[module]) :
-            sign += "," + mapAlias[module][dict_option[module]]
-        else :
-          sign += "," + dict_option[module]
-      sign += "|"
-  sign = sign[:-1]
-  return sign
-
-def get_cmdLine(option, mapAlias) :
-  dict_option = eval(str(option))
-  list_keys = dict_option.keys()
-  list_keys.sort()
-  sign = ""
-  for module in list_keys :
-    if module != "fileout" and module != "verbose":
-      sign += str(module) 
-      if isinstance(dict_option[module],list): #type(dict_option[module]) == types.ListType :
-        for v in dict_option[module] :
-          if mapAlias.has_key(module) :
-            if mapAlias[module].has_key(v[0]) :
-              v = mapAlias[module][v[0]]
-          sign += "," + ':'.join(v)
-      else :
-        if mapAlias.has_key(module) :
-          if mapAlias[module].has_key(dict_option[module]) :
-            sign += "," + mapAlias[module][dict_option[module]]
-        else :
-          sign += "," + dict_option[module]
-      sign += " "
-  sign = sign[:-1]
-  return sign
-
 
 def main(args=sys.argv[1:]):
     path_log1 = "./log/documentDistances"
@@ -123,7 +71,9 @@ def main(args=sys.argv[1:]):
       }
     }
 
-    signature = get_signature(opt_options, mapAlias)
+#    signature = get_signature(opt_options, mapAlias)
+    signature = str(opt_options)
+#    print signature
 
     context = {}
     matrix_id = getMatrixId(5)
@@ -173,7 +123,7 @@ def main(args=sys.argv[1:]):
         content = Document(fileName)
         initial_corpus.append(content)
       except Exception, e:
-        print e
+        pass
 
     if(opt_options.verbose) : print "[ok] Filtering documents" 
     filtered_corpus = []
@@ -221,7 +171,7 @@ def main(args=sys.argv[1:]):
 
     list_str_document = [str(document) for document in segmented_corpus]
     print_json = '''
-{"signature" : \'%s\',\n 
+{"signature" : "%s",\n 
  "filenames" : %s, \n 
  "corpus_scores" : \n  %s \n
 }'''%(signature,str(list_str_document),str(documents_distances))
@@ -246,3 +196,53 @@ if __name__ == "__main__":
 #              print "   * distance = " + str(distance)
 #            else :
 #              print " * ", document1, document2, " : ", distance
+
+
+ #def get_signature(option, mapAlias) :
+ # dict_option = eval(str(option))
+ # print option
+ # list_keys = dict_option.keys()
+ # list_keys.sort()
+ # sign = ""
+ # for module in list_keys :
+ #   if module != "fileout" and module != "verbose":
+ #     sign += str(module) 
+ #     if isinstance(dict_option[module],list): #type(dict_option[module]) == types.ListType :
+ #       for v in dict_option[module] :
+ #         if mapAlias.has_key(module) :
+ #           if mapAlias[module].has_key(v[0]) :
+ #             v =mapAlias[module][v[0]]
+ #         sign += "," + v[0] 
+ #     else :
+ #       if mapAlias.has_key(module) :
+ #         if mapAlias[module].has_key(dict_option[module]) :
+ #           sign += "," + mapAlias[module][dict_option[module]]
+ #       else :
+ #         sign += "," + dict_option[module]
+ #     sign += "|"
+ # sign = sign[:-1]
+ # return sign
+
+ #def get_cmdLine(option, mapAlias) :
+ # dict_option = eval(str(option))
+ # list_keys = dict_option.keys()
+ # list_keys.sort()
+ # sign = ""
+ # for module in list_keys :
+ #   if module != "fileout" and module != "verbose":
+ #     sign += str(module) 
+ #     if isinstance(dict_option[module],list): #type(dict_option[module]) == types.ListType :
+ #       for v in dict_option[module] :
+ #         if mapAlias.has_key(module) :
+ #           if mapAlias[module].has_key(v[0]) :
+ #             v = mapAlias[module][v[0]]
+ #         sign += "," + ':'.join(v)
+ #     else :
+ #       if mapAlias.has_key(module) :
+ #         if mapAlias[module].has_key(dict_option[module]) :
+ #           sign += "," + mapAlias[module][dict_option[module]]
+ #       else :
+ #         sign += "," + dict_option[module]
+ #     sign += " "
+ # sign = sign[:-1]
+ # return sign

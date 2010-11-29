@@ -257,15 +257,10 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, colora
         print >>f, '<td valign="top" style="font-size:12px; padding:0px;">%s</td> '% "<br/>".join(names[n])
     print >>f, "<td></td></tr></table>"
 
+    signature = eval(signature)
     print_signature = ""
-
-    for l1 in signature.split(";") :
-        l2 = l1.split('|')
-        print_signature += "<dl><dt>"+l2[0]+"</dt>"
-        for l3 in l2[1:] :
-            l4 = l3.split(',')
-            print_signature += "<dd><strong>" + l4[0] + "</strong> " + str(l4[1:]) + "</dd>"
-        print_signature += "</dl>"
+    for k,v in signature.iteritems() :
+      print_signature += '<li><strong>%s</strong> : %s</li>'%(str(k),str(v))
 
     print >>f, "%s"%(print_signature)
 
@@ -402,9 +397,18 @@ def main(options):
     names, input, signature = data["filenames"], data["corpus_scores"], data["signature"]
     matrix = listList_to_matrix(input)
 
-#    couples = linkage(matrix, dist_max)
-#    couples = linkage(matrix, dist_min)
-    couples = linkage(matrix, dist_avg)
+
+########################################
+#   OPTION : dist -d
+########################################
+    if options.dist == "min" :
+      distance_cluster = dist_min
+    elif options.dist == "max" :
+      distance_cluster = dist_max
+    elif options.dist == "avg" :
+      distance_cluster = dist_avg
+
+    couples = linkage(matrix, distance_cluster)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
     matrix = permute_matrix(matrix, sortedNodes)

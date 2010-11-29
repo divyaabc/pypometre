@@ -67,7 +67,7 @@ class Document:
 #        print charset
 
         if re.search('unknown',charset) :
-          content_unicode = unicode(content,"iso-8859")            
+          content_unicode = unicode(content,"iso-8859-1")
         elif re.search('ascii',charset) :
           content_unicode = unicode(content,"ascii")
         else :
