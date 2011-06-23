@@ -1,21 +1,19 @@
 import distance
 import math
 
-class Module_innerEntropy(distance.Distance):
+class Module_ie(distance.Distance):
   def process(self, seg1, seg2):
     text1 = unicode(seg1.getContent(),'utf-8')
     text2 = unicode(seg2.getContent(),'utf-8')
     e1 = getInnerEntropy(text1) 
     e2 = getInnerEntropy(text2)
-    res = getDiff(e1,e2)
-    return res
+    return getDiff(e1,e2)
 
 def getDiff(a,b) :
   m = max(a,b)
   if m == 0 :
     return 0
-  else :
-    return abs(a-b) / max(a,b)
+  return abs(a-b) / m
 
 def getInnerEntropy(_str) :
   alphabet = getAlphabet(_str)
@@ -34,5 +32,4 @@ def getAlphabet(_str) :
     else :
       alphabet[l] = 1
   return alphabet
-
 

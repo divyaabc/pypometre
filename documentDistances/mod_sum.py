@@ -1,16 +1,15 @@
 import documentDistances
-import numpy
-import pprint
+import sys
+sys.path.append('..')
+
+from dataStructures import *
 
 class Module_sum(documentDistances.Distance):
+  def process(self, lmatrix):
+    minDim = min(lmatrix._width, lmatrix._height)
+    pairs =  self._context['pairs']
+    score = 0.
+    for i in xrange(minDim) :
+      score += lmatrix.get(pairs[i],i)
+    return score / minDim
 
-    def process(self, matrix):
-        minDim = min(len(matrix), len(matrix[0]))
-        pairs =  self._context["pairs"]
-        score = 0.0
-        for i, j in enumerate(pairs):
-          if i >= minDim :
-            break
-          score += matrix[i][j]
-
-        return score / minDim

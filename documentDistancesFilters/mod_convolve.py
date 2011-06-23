@@ -2,7 +2,13 @@ import documentDistancesFilters
 import numpy
 import pprint
 import scipy.signal
+
 import sys
+sys.path.append('..')
+
+from dataStructures import *
+import tool_dataStructures as tds
+
 
 class Module_convolve(documentDistancesFilters.DistanceFilter):
 
