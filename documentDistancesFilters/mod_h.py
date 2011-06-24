@@ -1,36 +1,28 @@
 import documentDistancesFilters
 import hungarian
+#import munk
 import sys
 sys.path.append('..')
 
 from dataStructures import LinedMatrix
-import tool_numpy as tn
 import tool_dataStructures as tds
 
 class Module_h(documentDistancesFilters.DistanceFilter):
   def process(self, matrixOrig):
-    matrixOrig = tn.matrix2numpy(matrixOrig.getMatrix())
-    lDim = sorted([len(matrixOrig), len(matrixOrig[0])])
+    lDim = sorted([matrixOrig._height, matrixOrig._width])
+    matrixOrig = tds.squarify(matrixOrig,1.)
+    matrix = matrixOrig.getMatrix()
+#    nMatrix = [[1.-val for val in line] for line in matrix]
 
-    matrix = tn.squarify(matrixOrig,1.)
-    a = tn.matrix2numpy(matrix)
-    pairs = list(hungarian.lap(a)[0])
+    pairs = list(hungarian.lap(matrix)[0])
+#    res = munk.maxWeightMatching(nMatrix)
+#    pairs = [res[0][i] for i in res[0].keys()]
 
-    a_void = tn.numpy_resize(a, lDim)
-    a_void.fill(1.0)
+    lA_void = LinedMatrix(lDim[1],lDim[0],1.)
 
     for i in xrange(lDim[0]) :
       j = pairs[i]
-      a_void[i][j] = matrix[i][j]
-
-#    for i, j in enumerate(pairs):
-#      if i >= lDim[0] :
-#        break
-#      a_void[i][j] = matrix[i][j]
+      lA_void.set(j,i,matrix[i][j])
 
     self._context["pairs"] = pairs
-
-    lA_void = LinedMatrix(0,0)
-    lA_void.convertDistMatrix(a_void)
-
     return lA_void

@@ -4,14 +4,22 @@ import subprocess
 import re
 
 import pprint
-import tool_numpy as tn
+#import tool_numpy as tn
 
 class LinedMatrix() :
-  def __init__(self, width, height) :
+  def __init__(self, width, height, fill_val = 0.0) :
     self._len = width*height
     self._width = width
     self._height = height
-    self.data = array('f', [0.0 for _ in xrange(self._len)])
+    self._min = min(width,height)
+    self.data = array('f', [fill_val for _ in xrange(self._len)])
+
+  def reinit(self, w, h) :
+    self._width = w
+    self._height = h
+    self._len = w*h
+    self._min = min(w,h)
+
 
   def i2xy(self, i) :
     assert(0 <= i < self._len)
@@ -25,11 +33,13 @@ class LinedMatrix() :
     return x + y*self._width
 
   def convertMatrix(self, matrix) :
-    self.__init__(len(matrix[0]),len(matrix))
-    for y,line in enumerate(matrix) :
-      for x,val in enumerate(line) :
-        i = self.xy2i(x,y)
-        self.data[i] = val
+    w = len(matrix[0])
+    h = len(matrix)
+    self.__init__(w,h)
+    for y in xrange(h) :
+      for x in xrange(w) :
+        i = x + y*self._width
+        self.data[i] = matrix[y][x]
 
   def convertDistMatrix(self, matrix) :
     self.__init__(len(matrix[0]),len(matrix))
@@ -40,11 +50,7 @@ class LinedMatrix() :
         cpt += 1
 
   def getMatrix(self) :
-    m = []
-    for y in xrange(self._height) :
-      ny = y * self._width
-      m.append(self.data[ny:ny+self._width])
-    return m
+    return [self.data[y*self._width:(y+1)*self._width] for y in xrange(self._height)]
 
   def __str__(self) :
     m = []
@@ -80,8 +86,8 @@ class DistMatrix():
 #    assert( 0 <= y < self._height)
     return self.data[y][x] 
 
-  def convert2numpy(self) :
-    return tn.matrix2numpy(self)
+#  def convert2numpy(self) :
+#    return tn.matrix2numpy(self)
 
   def __str__(self) :
     return str(self.data)

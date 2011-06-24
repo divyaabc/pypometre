@@ -4,7 +4,7 @@ sys.path.append('..')
 
 from dataStructures import *
 import tool_dataStructures as tds
-import tool_numpy as tn
+#import tool_numpy as tn
 
 #module threshold
 class Module_t(documentDistancesFilters.DistanceFilter):

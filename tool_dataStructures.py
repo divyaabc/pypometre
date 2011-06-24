@@ -1,10 +1,53 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-
-#import os, sys
-#import pprint
 from dataStructures import *
+
+def levenshtein(word1, word2):
+  columns = len(word1) + 1
+  rows = len(word2) + 1
+
+  # build first row
+  currentRow = [0]
+  for column in xrange(1, columns):
+    currentRow.append(currentRow[column-1]+1)
+
+  for row in xrange( 1, rows ):
+    previousRow = currentRow
+    currentRow = [previousRow[0] + 1]
+
+    for column in xrange( 1, columns ):
+      insertCost = currentRow[column - 1] + 1
+      deleteCost = previousRow[column] + 1
+
+      if word1[column-1] != word2[row-1]:
+        replaceCost = previousRow[column-1] + 1
+      else:                
+        replaceCost = previousRow[column-1]
+
+      currentRow.append(min(insertCost,deleteCost,replaceCost))
+
+  return currentRow[-1]
+
+
+def rotate_lMatrix(lMatrix) :
+  lRotate = LinedMatrix(lMatrix._height,lMatrix._width)
+  for i in xrange(lRotate._len) :
+    ni = i/lMatrix._width + (i%lMatrix._width) * lRotate._width
+    lRotate.data[ni] = lMatrix.data[i]
+  return lRotate
+
+def squarify(lMatrix, val_fill) :
+  if lMatrix._height > lMatrix._width:
+    lMatrix = rotate_lMatrix(lMatrix)
+
+  r = (lMatrix._width - lMatrix._height) * lMatrix._width
+  for _ in xrange(r):
+    lMatrix.data.append(val_fill)
+  lMatrix.reinit(lMatrix._width, lMatrix._width)
+  return lMatrix
+
+
 
 def lFiltre2list_i(lFiltre, width_tgt) :
   matrix = lFiltre.getMatrix()
@@ -16,8 +59,7 @@ def lFiltre2list_i(lFiltre, width_tgt) :
       val = matrix[y][x] 
       if val == 0. :
         continue
-      ni = mod + x - mid
-      l.append((ni,val))
+      l.append((mod + x - mid,val))
   return l
 
 
@@ -68,9 +110,9 @@ def convolve_linedMatrix2(lMatrix, lFiltre, method, fill) :
 
 def threshold_linedMatrix(lMatrix, thresh) :
   for i in xrange(lMatrix._len) :
-    if lMatrix.data[i]< thresh[0] :
-      lMatrix.data[i] = 0.
-    elif lMatrix.data[i] > thresh[1] :
+#    if lMatrix.data[i]< thresh[0] :
+#      lMatrix.data[i] = 0.
+    if lMatrix.data[i] > thresh[1] :
       lMatrix.data[i] = 1.
   return lMatrix
 

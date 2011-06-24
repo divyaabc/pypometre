@@ -8,7 +8,9 @@ from pypometre_optparser import opt_parser_pypometre
 #import types
 
 import time
-import tool_numpy as tn
+#import tool_numpy as tn
+from munkres import *
+import random
 
 # recupere le fichier mod_name dans le dossier typ et charge Module_name
 def getClassOf(typ, name):
@@ -88,12 +90,15 @@ def main(args=sys.argv[1:]):
     len_segmented_corpus = len(segmented_corpus)
     lmatrix_docDist = LinedMatrix(len_segmented_corpus, len_segmented_corpus)
 
-    for i, document1 in enumerate(segmented_corpus):
+#    for i, document1 in enumerate(segmented_corpus):
+    for i in xrange(len_segmented_corpus):#enumerate(segmented_corpus):
+      document1 = segmented_corpus[i]
       segLst1 = document1.getSegmentation()
       name_doc1 = os.path.split(str(document1))[1]
-      for j, document2 in enumerate(segmented_corpus):
+      for j in xrange(len_segmented_corpus):
         if j <= i:
           continue
+        document2 = segmented_corpus[j]
 
         if(opt_options.verbose) :
           print "[go] distance(%s,%s)"%(document1, document2)
@@ -112,6 +117,7 @@ def main(args=sys.argv[1:]):
 #          tn.matrix2image(matrix,"%s/%s_x_%s.png"%(path_log1,name_doc1,name_doc2))
 
         for f in documentDistanceFilters :
+          print f
           matrix = f(matrix)
 #          if(opt_options.verbose) :
 #            tn.matrix2image(matrix,"%s/%s_x_%s%i.png"%(path_log2,name_doc1,name_doc2,nb))
@@ -139,6 +145,9 @@ def main(args=sys.argv[1:]):
     return print_json
 
 if __name__ == "__main__":
+#    l = [[random.random() for _ in xrange(10)] for _ in xrange(10)]
+#    m = Munkres()
+#    res = m.compute(l)
     start = time.clock()
     main()
     end = time.clock()

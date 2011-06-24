@@ -1,3 +1,6 @@
+import sys
+sys.path.append(".")
+
 from Levenshtein import *
 from warnings import warn
 

@@ -3,7 +3,7 @@ import sys
 sys.path.append('..')
 from dataStructures import *
 import tool_dataStructures as tds
-import tool_numpy as tn
+#import tool_numpy as tn
 
 class Module_c(documentDistancesFilters.DistanceFilter):
   def process(self,lMatrix):
