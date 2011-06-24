@@ -107,11 +107,15 @@ def main(args=sys.argv[1:]):
         name_doc2 = os.path.split(str(document2))[1]
 
 #        matrix = DistMatrix(len(segLst1), len(segLst2))
-        matrix = LinedMatrix(len(segLst1), len(segLst2))
-        for x, seg1 in enumerate(segLst1):
-          for y, seg2 in enumerate(segLst2):
-            distance = segmentDistance(seg1, seg2)
-            matrix.set(x, y, distance)
+        l1 = len(segLst1)
+        l2 = len(segLst2)
+        matrix = LinedMatrix(l1, l2)
+        for x in xrange(l1):
+          seg1 = segLst1[x]
+          for y in xrange(l2):
+            ni = x + y*matrix._width
+            matrix.data[ni] = segmentDistance(seg1, segLst2[y])
+#            matrix.set(x, y, distance)
 
 #        if(opt_options.verbose) :
 #          tn.matrix2image(matrix,"%s/%s_x_%s.png"%(path_log1,name_doc1,name_doc2))
