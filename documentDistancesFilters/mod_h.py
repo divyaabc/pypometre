@@ -1,6 +1,6 @@
 import documentDistancesFilters
-#import hungarian
-import munk
+import hungarian
+#import munk
 import sys
 sys.path.append('..')
 
