@@ -54,12 +54,10 @@ def lFiltre2list_i(lFiltre, width_tgt) :
   mid = lFiltre._width / 2
   l = []
   for y in xrange(lFiltre._height) :
-    mod = (y - mid) * width_tgt
     for x in xrange(lFiltre._width) :
-      val = matrix[y][x] 
-      if val == 0. :
-        continue
-      l.append((mod + x - mid,val))
+      if matrix[y][x] != 0. :
+        mod = (y - mid) * width_tgt
+        l.append((mod + x - mid, matrix[y][x]))
   return l
 
 
@@ -115,4 +113,30 @@ def threshold_linedMatrix(lMatrix, thresh) :
     if lMatrix.data[i] > thresh[1] :
       lMatrix.data[i] = 1.
   return lMatrix
+
+def get_auto_corres(document) :
+  segList = document.getSegmentation()  
+  segLen = len(segList)
+  res = []
+  cpt = 0
+  for i in xrange(segLen) :
+    seg = segList[i]
+    flag = True
+    for x in xrange(cpt) :
+      if str(seg) == str(segList[res[x][0]]) :
+        res[x].append(i)
+        flag = False
+        break
+    if flag :
+      res.append([i])
+      cpt += 1
+  
+  return res
+
+
+
+
+
+    
+
 

@@ -7,17 +7,17 @@ then
     do 
 	if [ -d $i ]
 	then
-	    cd $i
-	    echo "creating $i.all"
-	    for j in  `find . -name "$2"`
+	  cd $i
+	  echo "creating $i.all"
+	  for j in  `find . -name "$2"`
 	    do
-		echo "\t adding $j"
-		cat $j >> ../$i.all
+		  echo "\t adding $j"
+		  cat $j >> ../$i.all
 	    done
-	    cd ..
+	  cd ..
 	fi
-    done 
-    cd ..
+  done 
+  cd ..
 else
     echo "dossier $1 introuvable"
     exit 1

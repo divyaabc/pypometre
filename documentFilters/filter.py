@@ -33,8 +33,7 @@ class Filter:
 class Filter_RegExp(Filter):
     def process(self, document):
         import re
-        text = document.getContent()
-        text_unicode = unicode(text,'utf-8')
+        text_unicode = unicode(document.getContent(),'utf-8')
         regExp = re.compile(u''+self.getRegExp(), re.UNICODE)
         text_unicode = regExp.sub(u''+self.getNewValue(), text_unicode)
         text = text_unicode.encode('utf-8','replace')

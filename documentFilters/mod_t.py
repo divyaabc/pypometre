@@ -1,11 +1,8 @@
 import filter
 
-
-
 class Module_t(filter.Filter_RegExp):
-    def getRegExp(self):
-        return "[\w]+"
+   def getRegExp(self):
+     return '[\w]+'
 
-    def getNewValue(self):
-        return "t" 
-
+   def getNewValue(self):
+     return 't' 

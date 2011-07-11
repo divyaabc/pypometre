@@ -7,6 +7,7 @@
 
 import random
 import time
+from array import array
 
 """ Global variables:
        n = number of vertices on each side
@@ -60,7 +61,7 @@ def augment():
     while True:
         # select edge (u,v) with u in S, v not in T and min slack
         ((val, u), v) = min([(minSlack[v], v) for v in xrange(n) if v not in T])
-        assert u in S
+        #assert u in S
         if val>0:        
             improveLabels(val)
         # now we are sure that (u,v) is saturated
@@ -85,8 +86,8 @@ def maxWeightMatching(weights):
     global S,T,Mu,Mv,lu,lv, minSlack, w, n
     w  = weights
     n  = len(w)
-    lu = [max([w[u][v] for v in xrange(n)]) for u in xrange(n)]  # start with trivial labels
-    lv = [ 0                                for _ in xrange(n)]
+    lu = array('f',[max([w[u][v] for v in xrange(n)]) for u in xrange(n)])  # start with trivial labels
+    lv = array('f',[ 0                                for _ in xrange(n)])
     Mu = {}                                       # start with empty matching
     Mv = {}
     while len(Mu)<n:

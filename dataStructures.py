@@ -20,7 +20,6 @@ class LinedMatrix() :
     self._len = w*h
     self._min = min(w,h)
 
-
   def i2xy(self, i) :
     assert(0 <= i < self._len)
     x = i % self._width
