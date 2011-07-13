@@ -115,32 +115,7 @@ def normalize_matrix(matrix, nodes) :
 
   return matrix_normalized
 
-def init_groupes(matrix):
-    groupes = [[i] for i, j in matrix if j == 0]
-    groupes.sort()
-    return groupes
 
-
-def iteration_linkage(matrix, groupes, dist):
-    min_dist = min((dist(matrix, g1, g2), i1, i2) 
-                        for i1, g1 in enumerate(groupes)
-                        for i2, g2 in enumerate(groupes)
-                        if i1 != i2
-                  )
-    return min_dist
-
-def linkage(matrix, dist):
-    groupes = init_groupes(matrix)
-    couples = []
-     
-    while len(groupes) > 1:
-        d, i1, i2 = iteration_linkage(matrix, groupes, dist)
-        g = sorted(groupes[i1] + groupes[i2])
-        couples.append((d, groupes[i1], groupes[i2], g))
-        groupes[i1] = g 
-        del(groupes[i2])
-        groupes.sort()
-    return couples
 
 def get_height(tree, node):
     if len(node) == 1: 
@@ -215,39 +190,40 @@ def boris_classifier(matrix, threshold):
     steps = [1.0-SI]
     return steps
 
-def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
+def phtml(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
     steps = classifier(matrix)
     colors = coloration(0, 1., steps, get_color_html)
+    style_td = ['font-size:11px;','padding:2px;']
 
-    if option_projection :
+    if opt.projection :
       total = [0 for _ in xrange(len(nodes))]
-      cpt = len(total) - 1
+      cpt = len(total) - 1.
 
     print >>f, '<table style="collapse:collapse;" cellspacing="0">'
     for i, n in enumerate(nodes):
-        print >>f,  '<tr>'
+        print >>f, '<tr>'
         for j in xrange(len(nodes)):
-          if option_projection and (i != j) :
-            total[j] += matrix[(i,j)]
-          sepTxt = "border-right: 0px solid black; border-bottom: 0px solid black;"
-          cls, color = get_color(matrix[(i, j)], steps, colors)
-          print >>f, '<td style="font-size:13px; padding:4px;%sbackground-color:%s;">%6.3f</td>'%(sepTxt, color, matrix[(i, j)])
-        print >>f, '<td style="font-size : 12px;">%s</td></tr>'%names[n]
+          if opt.projection and (i != j) :
+            total[j] += matrix[(i,j)] / cpt
+          score = matrix[(i,j)]
+          _, color = get_color(score, steps, colors)
+          styles = style_td + ['background-color:%s;'%(color)]
+          print >>f, '<td style="%s">%6.2f</td>'%("".join(styles), score)
+        print >>f, '<td style="%s">%s</td></tr>'%(style_td[0],names[n])
     print >>f, "<tr>"
 
-    if option_projection :
+    if opt.projection :
       print >>f, "<tr>"
       line_str = ""
-      for val in total :
-        true_val = float(val) / cpt
+      for true_val in total :
         cls, color = get_color(true_val, steps, colors)
-        sepTxt = "border: 1px solid black;"
-        line_str += '<td style="font-size : 12px; padding:4px;%sbackground-color:%s;">%6.2f</td>'%(sepTxt, color, true_val)
+        styles = style_td + ['background-color:%s;'%(color),'border: 1px solid black;']
+        line_str += '<td style="%s;">%.2f</td>'%("".join(styles), true_val)
       print >>f, "%s</tr>"%(line_str) 
 
     for n in nodes:
-        print >>f, '<td valign="top" style="font-size:12px; padding:0px;">%s</td> '% "<br/>".join(names[n])
-    print >>f, "<td></td></tr></table>"
+      print >>f, '<td valign="top" style="%s">%s</td> '%(style_td[0],"<br/>".join(names[n]))
+    print >>f, "<td/></tr></table>"
 
     signature = eval(signature)
     print_signature = ""
@@ -256,7 +232,7 @@ def print_matrix_as_html(f, names, matrix, nodes, separators, classifier, colora
 
     print >>f, "%s"%(print_signature)
 
-def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
+def pdoc(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
   print >>f, "\documentclass[a4paper]{article}"
   print >>f, "\usepackage[utf8]{inputenc}"
   print >>f, "\usepackage[T1]{fontenc}" 
@@ -265,12 +241,12 @@ def print_matrix_as_doc(f, names, matrix, nodes, separators, classifier, colorat
   print >>f, "\usepackage[table]{xcolor}"
   print >>f, '\\begin{document}'
 
-  print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName)
+  ptex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt)
 
   print >>f, "\end{document}"
 
 
-def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
+def ptex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
     steps = classifier(matrix)
     colors = coloration(0., 1., steps, get_color_tex)
     descript_col = "|r|"
@@ -321,7 +297,7 @@ def print_matrix_as_tex(f, names, matrix, nodes, separators, classifier, colorat
       print >>f, "%s" % (line_total)
     print >>f, '\hline\end{tabular}'
 
-def print_matrix_as_png(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
+def ppng(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
   import Image, ImageColor
   zoom = 2
   steps = classifier(matrix)
@@ -338,10 +314,10 @@ def print_matrix_as_png(f, names, matrix, nodes, separators, classifier, colorat
           image.putpixel((i*zoom+k1, j*zoom+k2), rgba) 
   image.save(f,"png")
 
-def print_matrix_as_json(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName):
+def pjson(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
   pngName = getFileName(outFileName, "png")
   f2 = open(pngName, 'w')
-  print_matrix_as_png(f2, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, pngName)
+  ppng(f2, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, pngName, opt)
   
   steps = classifier(matrix)
   colors = coloration(0, 1., steps, get_color_html)
@@ -364,6 +340,33 @@ def print_matrix_as_json(f, names, matrix, nodes, separators, classifier, colora
   f.write("{'fileNames':%s, 'matrix': %s, 'colors': %s}"%(fileNames, m, col));
 
 
+def init_groupes(matrix):
+  groupes = [[i] for i, j in matrix if j == 0]
+  groupes.sort()
+  return groupes
+
+
+def iteration_linkage(matrix, groupes, dist):
+  min_dist = min((dist(matrix, g1, g2), i1, i2) 
+                      for i1, g1 in enumerate(groupes)
+                      for i2, g2 in enumerate(groupes)
+                      if i1 != i2
+                )
+  return min_dist
+
+
+def linkage(matrix, dist):
+  groupes = init_groupes(matrix)
+  couples = []
+   
+  while len(groupes) > 1:
+    d, i1, i2 = iteration_linkage(matrix, groupes, dist)
+    g = sorted(groupes[i1] + groupes[i2])
+    couples.append((d, groupes[i1], groupes[i2], g))
+    groupes[i1] = g 
+    del(groupes[i2])
+    groupes.sort()
+  return couples
 
 def dmin(matrix, g1, g2):
     return min(matrix[(i, j)] for i in g1 for j in g2)
@@ -382,15 +385,15 @@ def getFileName(inFile, mode, outFile='default') :
 
 def main(options):
     #raise SystemExit(0)
-########################################
+################################
 #   OPTION : filename -f
-########################################
+################################
     inFile = options.filename
 
-########################################
+################################
 #   OPTION : fileout -o
 #   OPTION : mode -m
-########################################
+################################
     outFile = getFileName(inFile, options.mode, options.fileout)
 
     f = open(outFile, "w")
@@ -399,58 +402,37 @@ def main(options):
     names, signature = data["filenames"], data["signature"]
     matrix = listList_to_matrix(data["corpus_scores"])
 
-
-########################################
+################################
 #   OPTION : dist -d
-########################################
-    function_name = 'd%s'%(options.dist)
-    distance_cluster = eval(function_name) #locals()[function_name]()
-
-#    if options.dist == "min" :
-#      distance_cluster = dist_min
-#    elif options.dist == "max" :
-#      distance_cluster = dist_max
-#    elif options.dist == "avg" :
-#      distance_cluster = dist_avg
+################################
+    fname = 'd%s'%(options.dist)
+    distance_cluster = eval(fname)
 
     couples = linkage(matrix, distance_cluster)
     tree = couples_to_tree(couples)
     sortedNodes, separators = sort_tree(tree, couples, sort_by_diameter(matrix))
     matrix = permute_matrix(matrix, sortedNodes)
 
-########################################
+###############################
 #   OPTION : normalisation -n
-########################################
+###############################
 #    normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
     if options.normalize : matrix = normalize_matrix(matrix,sortedNodes)
 
-########################################
-#   OPTION : verbose -q
-########################################
-
-########################################
+###############################
 #   OPTION : output mode -m
-########################################
+###############################
     #classifier, coloration = (lambda m: boris_classifier(m, .85)), get_hsl 
     #classifier, coloration = (lambda m: matrix_half_entangled_mean(m,options.nb_class)), get_half_hsl
     classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
-#    print separators
-    if options.mode == "html" :
-      printer = print_matrix_as_html
-    elif options.mode == "tex" :
-      printer = print_matrix_as_tex
-    elif options.mode == "doc" :
-      printer = print_matrix_as_doc
-    elif options.mode == "png" :
-      printer = print_matrix_as_png
-    elif options.mode == "json" :
-      printer = print_matrix_as_json
 
-    printer(f, names, matrix, sortedNodes, separators, classifier, coloration, options.projection, signature, outFile)
+    fname = "p%s"%(options.mode)
+    printer = eval(fname)
+    printer(f, names, matrix, sortedNodes, separators, classifier, coloration, options.projection, signature, outFile, options)
 
-########################################
+################################
 #   OPTION : verbose -q
-########################################
+################################
     if(options.verbose) :
       print " - " + "file://" + os.path.join(os.path.abspath("."), outFile)
 
