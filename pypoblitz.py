@@ -70,8 +70,9 @@ class RunningMethod_pp(RunningMethod):
             allJobs.append(job)       
             #subprocess.call(["/bin/sh", "-c", cmd])
 #            print >>sys.stderr, "- [t=%3.0f]    pid=%8d    dur=%6.0fs"%(time.time()-start_t, pid, time
-        for job in allJobs:
-            print job()
+
+#        for job in allJobs:
+#            print job()
 
 class RunningMethod_list(RunningMethod):
     def addCommand(self, f_out, f1, f2):
@@ -83,11 +84,12 @@ class RunningMethod_list(RunningMethod):
         pid = -1
         maxCmds = len(self._commands)
         for nbCmds, cmd in enumerate(self._commands):
-            nbcmds = nbCmds+1
-            print >>sys.stderr, "+ [t=%3.0f]    pid=%8d    idx=%4d/%4d "%(time.time()-start_t, pid, nbCmds, maxCmds)
-            t = time.time() 
+            nbcmds += 1
+#            print >>sys.stderr, "+ [t=%3.0f]    pid=%8d    idx=%4d/%4d "%(time.time()-start_t, pid, nbCmds, maxCmds)
+            print >>sys.stderr, "idx=%4d/%4d "%(nbCmds, maxCmds)
+#            t = time.time() 
             subprocess.call(["/bin/sh", "-c", cmd])
-            print >>sys.stderr, "- [t=%3.0f]    pid=%8d    dur=%6.0fs"%(time.time()-start_t, pid, time.time() - t)
+#            print >>sys.stderr, "- [t=%3.0f]    pid=%8d    dur=%6.0fs"%(time.time()-start_t, pid, time.time() - t)
 
 class RunningMethod_qsub(RunningMethod):
     def addCommand(self, f_out, f1, f2):
@@ -117,7 +119,7 @@ class RunningMethod_fork(RunningMethod):
         self._commands.append(cmd) 
 
     def run(self):
-        maxProcesses = 2
+        maxProcesses = 4
         
         nbProcesses = 0
         processes = {}
@@ -137,8 +139,9 @@ class RunningMethod_fork(RunningMethod):
                     os.execlp(args[0], *args)
                   else:
                     nbCmds += 1
-                    print >>sys.stderr, "+ [t=%3.0f]    pid=%8d    idx=%4d/%4d "%(time.time()-start_t, pid, nbCmds, maxCmds)
-                    print >>sys.stderr, "    %s"%(currentCmd)
+#                    print >>sys.stderr, "+ [t=%3.0f]    pid=%8d    idx=%4d/%4d "%(time.time()-start_t, pid, nbCmds, maxCmds)
+                    print >>sys.stderr, "+ %4d/%4d "%(nbCmds, maxCmds)
+#                    print >>sys.stderr, "    %s"%(currentCmd)
                     processes[pid] = (currentCmd, time.time())
                     nbProcesses += 1
                 except IndexError, e:
@@ -146,7 +149,7 @@ class RunningMethod_fork(RunningMethod):
             pid, res = os.waitpid(0, os.WNOHANG)
             if pid > 0:
               cmd, t = processes[pid]
-              print >>sys.stderr, "- [t=%3.0f]    pid=%8d    dur=%6.0fs"%(time.time()-start_t, pid, time.time() - t)
+#              print >>sys.stderr, "- [t=%3.0f]    pid=%8d    dur=%6.0fs"%(time.time()-start_t, pid, time.time() - t)
               #print >>sys.stderr, "    %s"%(cmd)
               nbProcesses -= 1
               if nbProcesses == 0:
@@ -181,7 +184,7 @@ def fusion_js(lst_f_out, out) :
       for i2, f2 in enumerate(corpus):
         documents_distances[i1][i2] = scores.get((f1, f2), 0.0)
 
-    print_json = '{"signature" : \'' + signature + '\',\n "filenames" : \n  '
+    print_json = '{"signature" : \'{}\',\n "filenames" : \n  '
     list_str_document = [str(document) for document in corpus]
     print_json += '%s ,\n "corpus_scores" : \n  %s \n}'%(str(list_str_document),str(documents_distances))
     file_out = open("%s.js"%out,'w')

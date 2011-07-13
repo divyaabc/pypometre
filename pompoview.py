@@ -59,7 +59,7 @@ def matrix_half_entangled_mean(matrix, n):
     return result
 
 
-def get_hsl(min, max, steps):
+def get_hsl(min, max, steps, null):
     colors = []
     for s in xrange(len(steps)):
         colors.append(get_color_html(((max-min)*s)/len(steps) + min))
@@ -120,14 +120,6 @@ def init_groupes(matrix):
     groupes.sort()
     return groupes
 
-def dist_min(matrix, g1, g2):
-    return min(matrix[(i, j)] for i in g1 for j in g2)
-            
-def dist_max(matrix, g1, g2):
-    return max(matrix[(i, j)] for i in g1 for j in g2)
-
-def dist_avg(matrix, g1, g2):
-    return avg(matrix[(i, j)] for i in g1 for j in g2)
 
 def iteration_linkage(matrix, groupes, dist):
     min_dist = min((dist(matrix, g1, g2), i1, i2) 
@@ -371,9 +363,19 @@ def print_matrix_as_json(f, names, matrix, nodes, separators, classifier, colora
     col.append(col_l)
   f.write("{'fileNames':%s, 'matrix': %s, 'colors': %s}"%(fileNames, m, col));
 
+
+
+def dmin(matrix, g1, g2):
+    return min(matrix[(i, j)] for i in g1 for j in g2)
+            
+def dmax(matrix, g1, g2):
+    return max(matrix[(i, j)] for i in g1 for j in g2)
+
+def davg(matrix, g1, g2):
+    return avg(matrix[(i, j)] for i in g1 for j in g2)
+
+
 def getFileName(inFile, mode, outFile='default') :
-  if mode == "doc": 
-     mode = "doc.tex"
   if outFile == "default" :
     return os.path.splitext(inFile)[0] + "." + mode
   return os.path.splitext(outFile)[0] + "." + mode
@@ -394,19 +396,22 @@ def main(options):
     f = open(outFile, "w")
 
     data = eval(file(inFile).read())
-    names, input, signature = data["filenames"], data["corpus_scores"], data["signature"]
-    matrix = listList_to_matrix(input)
+    names, signature = data["filenames"], data["signature"]
+    matrix = listList_to_matrix(data["corpus_scores"])
 
 
 ########################################
 #   OPTION : dist -d
 ########################################
-    if options.dist == "min" :
-      distance_cluster = dist_min
-    elif options.dist == "max" :
-      distance_cluster = dist_max
-    elif options.dist == "avg" :
-      distance_cluster = dist_avg
+    function_name = 'd%s'%(options.dist)
+    distance_cluster = eval(function_name) #locals()[function_name]()
+
+#    if options.dist == "min" :
+#      distance_cluster = dist_min
+#    elif options.dist == "max" :
+#      distance_cluster = dist_max
+#    elif options.dist == "avg" :
+#      distance_cluster = dist_avg
 
     couples = linkage(matrix, distance_cluster)
     tree = couples_to_tree(couples)
@@ -427,8 +432,8 @@ def main(options):
 #   OPTION : output mode -m
 ########################################
     #classifier, coloration = (lambda m: boris_classifier(m, .85)), get_hsl 
-    classifier, coloration = (lambda m: matrix_half_entangled_mean(m,options.nb_class)), get_half_hsl
-    #classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
+    #classifier, coloration = (lambda m: matrix_half_entangled_mean(m,options.nb_class)), get_half_hsl
+    classifier, coloration = (lambda m: matrix_entangled_mean(m,options.nb_class)), get_hsl
 #    print separators
     if options.mode == "html" :
       printer = print_matrix_as_html

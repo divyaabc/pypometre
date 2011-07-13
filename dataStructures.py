@@ -13,6 +13,7 @@ class LinedMatrix() :
     self._height = height
     self._min = min(width,height)
     self.data = array('f', [fill_val for _ in xrange(self._len)])
+#    self.data = [fill_val for _ in xrange(self._len)]
 
   def reinit(self, w, h) :
     self._width = w
@@ -21,14 +22,14 @@ class LinedMatrix() :
     self._min = min(w,h)
 
   def i2xy(self, i) :
-    assert(0 <= i < self._len)
+#    assert(0 <= i < self._len)
     x = i % self._width
     y = i / self._width
     return (x,y)
 
   def xy2i(self, x,y) :
-    assert(0 <= x < self._width)
-    assert(0 <= y < self._height)
+#    assert(0 <= x < self._width)
+#    assert(0 <= y < self._height)
     return x + y*self._width
 
   def convertMatrix(self, matrix) :

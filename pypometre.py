@@ -91,6 +91,8 @@ def main(args=sys.argv[1:]):
 #        auto = get_auto_corres(content)
 #        print auto
 #        1/0
+        segLst1 = content.getSegmentation()
+#        if(len(segLst1) > 0) :
         segmented_corpus.append(content)
       except Exception, e:
         pass
@@ -147,7 +149,7 @@ def main(args=sys.argv[1:]):
 #          tn.matrix2image(matrix,"%s/%s_x_%s.png"%(path_log1,name_doc1,name_doc2))
 
         for f in documentDistanceFilters :
-          print f
+#          print f
           matrix = f(matrix)
 #          if(opt_options.verbose) :
 #            tn.matrix2image(matrix,"%s/%s_x_%s%i.png"%(path_log2,name_doc1,name_doc2,nb))
@@ -178,7 +180,7 @@ if __name__ == "__main__":
 #    l = [[random.random() for _ in xrange(10)] for _ in xrange(10)]
 #    m = Munkres()
 #    res = m.compute(l)
-    start = time.clock()
+#    start = time.clock()
     main()
     end = time.clock()
-    print "[time] %f"%(end-start)
+#    print "[time] %f"%(end-start)
