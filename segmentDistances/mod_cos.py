@@ -1,8 +1,6 @@
 import math
 import distance
 #import cpyext
-from StringMatcher import StringMatcher
-
 import sys
 #import PypyLevenshtein
 #sys.path.append('..')
@@ -28,14 +26,6 @@ class Module_cos(distance.Distance):
       v2[l] += 1
     score = 1-get_angle(v1,v2,vall,len(vall)) 
     return score
-
-#    if(text1 == text2) :
-#      return 0.
-#    String_test = StringMatcher()
-#    String_test.set_seqs(text1, text2)
-#    dist = String_test.distance()
-#    dist = tds.levenshtein(text1,text2)
-#    return float(dist) / max(len(text1),len(text2))
 
 def get_angle(v1,v2,base,count) :
   up,n1,n2 = 0.,0.,0.

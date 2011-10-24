@@ -195,8 +195,7 @@ def main(args=sys.argv[1:]):
   parser = opt_parser_pypoblitz()
   (opt_options, opt_args) = parser.parse_args(args)
   out = opt_options.fileout
-  #out = "out"
-  files = opt_args#sys.argv[3:]
+  files = opt_args
   
   Method = eval("RunningMethod_" + opt_options.method)
   method = Method(opt_options.args)

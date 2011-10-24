@@ -6,74 +6,73 @@ from optparse import OptionParser
 from pypometre_optparser import opt_parser_pompoview
 
 def avg(l): 
-    l = list(l)
-    return float(sum(l))/len(l)
+  l = list(l)
+  return float(sum(l))/len(l)
 
-def median(matrix):
-    lst = sorted(matrix.values())
-    return lst[len(lst)/2]
+#def median(matrix):
+#    lst = sorted(matrix.values())
+#    return lst[len(lst)/2]
 
-def listList_to_matrix(lstLst):
-    matrix = {}
-    for i, lst in enumerate(lstLst):
-        for j, v in enumerate(lst):
-            matrix[(i, j)] = v
-    return matrix
+def listList_to_matrix(ll):
+  matrix = {}
+  for i, l in enumerate(ll):
+    for j, v in enumerate(l):
+      matrix[(i, j)] = v
+  return matrix
 
 def matrix_mean(matrix):
-    return sum(matrix.values()) / len(matrix)
+  return sum(matrix.values()) / len(matrix)
 
 def matrix_mean_split(matrix, inf, sup):
-    return matrix_mean(dict((k, v) for k, v in matrix.iteritems() if inf <= v <=sup))
+  return matrix_mean(dict((k, v) for k, v in matrix.iteritems() if inf <= v <=sup))
 
 def matrix_entangled_mean(matrix, n):
-    val_max = max(matrix.values())
-    val_min = min(matrix.values())
-    lst = [(val_min,val_max,n)]
-    result = []
-    while lst:
-        inf,sup,n = lst.pop()
-        m = matrix_mean_split(matrix, inf, sup)
-        result.append(m)
-        if n == 1:
-            continue
-        lst.append((inf,m,n-1))
-        lst.append((m,sup,n-1))
-    result.sort()
-    return result
+  val_max = max(matrix.values())
+  val_min = min(matrix.values())
+  lst = [(val_min,val_max,n)]
+  result = []
+  while lst:
+    inf,sup,n = lst.pop()
+    m = matrix_mean_split(matrix, inf, sup)
+    result.append(m)
+    if n == 1:
+        continue
+    lst.append((inf,m,n-1))
+    lst.append((m,sup,n-1))
+  result.sort()
+  return result
 
 def matrix_half_entangled_mean(matrix, n):
-    val_max = max(matrix.values())
-    val_min = min(matrix.values())
-    lst = [(val_min,val_max,n)]
-    result = []
-    while lst:
-        inf,sup,n = lst.pop()
-        m = matrix_mean_split(matrix, inf, sup)
-        result.append(m)
-        if n == 1:
-            continue
-        lst.append((inf,m,n-1))
-        #lst.append((m,sup,n-1))
-    result.sort()
-    return result
+  val_max = max(matrix.values())
+  val_min = min(matrix.values())
+  lst = [(val_min,val_max,n)]
+  result = []
+  while lst:
+    inf,sup,n = lst.pop()
+    m = matrix_mean_split(matrix, inf, sup)
+    result.append(m)
+    if n == 1.:
+      continue
+    lst.append((inf,m,n-1))
+    #lst.append((m,sup,n-1))
+  result.sort()
+  return result
 
 
-def get_hsl(min, max, steps, null):
-    colors = []
-    for s in xrange(len(steps)):
-        colors.append(get_color_html(((max-min)*s)/len(steps) + min))
-    colors.append(get_color_html(1.0))
-    return colors
-
+def get_hsl(vmin, vmax, steps, null):
+  colors = []
+  for s in xrange(len(steps)):
+    colors.append(get_color_html(((vmax-vmin)*s)/len(steps) + vmin))
+  colors.append(get_color_html(1.0))
+  return colors
 
 def get_half_hsl(min, max, steps, color_printer):
-    colors = []
-    for s in xrange(len(steps)):
-      colors.append(color_printer(1./(2**s)))
-    colors.append(color_printer(0.0))
-    colors.reverse()
-    return colors
+  colors = []
+  for s in xrange(len(steps)):
+    colors.append(color_printer(1./(2**s)))
+  colors.append(color_printer(0.0))
+  colors.reverse()
+  return colors
 
 def get_hsb(min, max, steps):
     colors = []
@@ -166,11 +165,11 @@ def sort_tree(tree, couples, sort_fct):
     return result, list(reversed(separators))
 
 def permute_matrix(matrix, lstNodes):
-    m = {}
-    for i1, i2 in enumerate(lstNodes):
-        for j1, j2 in enumerate(lstNodes):
-            m[(i1, j1)] = matrix[(i2, j2)]
-    return m
+  m = {}
+  for i1, i2 in enumerate(lstNodes):
+    for j1, j2 in enumerate(lstNodes):
+      m[(i1, j1)] = matrix[(i2, j2)]
+  return m
 
 def filter_matrix(matrix, line):
     l = max(i for (i, j) in matrix)+1
@@ -190,7 +189,14 @@ def boris_classifier(matrix, threshold):
     steps = [1.0-SI]
     return steps
 
-def phtml(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
+
+def plist(f, names, matrix, nodes, classifier, coloration, signature, outFileName, opt):
+  steps = classifier(matrix)
+  print steps
+  1/0
+  pass
+
+def phtml(f, names, matrix, nodes, classifier, coloration, signature, outFileName, opt):
     steps = classifier(matrix)
     colors = coloration(0, 1., steps, get_color_html)
     style_td = ['font-size:11px;','padding:2px;']
@@ -232,7 +238,7 @@ def phtml(f, names, matrix, nodes, separators, classifier, coloration, option_pr
 
     print >>f, "%s"%(print_signature)
 
-def pdoc(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
+def pdoc(f, names, matrix, nodes, classifier, coloration, signature, outFileName, opt):
   print >>f, "\documentclass[a4paper]{article}"
   print >>f, "\usepackage[utf8]{inputenc}"
   print >>f, "\usepackage[T1]{fontenc}" 
@@ -241,12 +247,12 @@ def pdoc(f, names, matrix, nodes, separators, classifier, coloration, option_pro
   print >>f, "\usepackage[table]{xcolor}"
   print >>f, '\\begin{document}'
 
-  ptex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt)
+  ptex(f, names, matrix, nodes, classifier, coloration, signature, outFileName, opt)
 
   print >>f, "\end{document}"
 
 
-def ptex(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
+def ptex(f, names, matrix, nodes, classifier, coloration, signature, outFileName, opt):
     steps = classifier(matrix)
     colors = coloration(0., 1., steps, get_color_tex)
     descript_col = "|r|"
@@ -262,7 +268,7 @@ def ptex(f, names, matrix, nodes, separators, classifier, coloration, option_pro
     print >>f, '\\begin{tabular}{' + descript_col + '|}'
     print >>f,  first_line
 
-    if option_projection :
+    if opt.projection :
       total = []
       cpt=0
       for i,val in enumerate(nodes):
@@ -277,7 +283,7 @@ def ptex(f, names, matrix, nodes, separators, classifier, coloration, option_pro
         #line = "%s & " % (names[n])
         for j in xrange(len(nodes)):
             cls, color = get_color(matrix[(i, j)], steps, colors)
-            if(option_projection and i != j) :
+            if(opt.projection and i != j) :
               total[j] += matrix[(i,j)]
               cpt += 1
             line += '%s %.2f & ' % (color,matrix[(i,j)])
@@ -286,7 +292,7 @@ def ptex(f, names, matrix, nodes, separators, classifier, coloration, option_pro
     print >>f, '\hline'
 
 
-    if option_projection :
+    if opt.projection :
       print >>f, 'total & '
       line_total = ""
       for val in total :
@@ -297,27 +303,28 @@ def ptex(f, names, matrix, nodes, separators, classifier, coloration, option_pro
       print >>f, "%s" % (line_total)
     print >>f, '\hline\end{tabular}'
 
-def ppng(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
+def ppng(f, names, matrix, nodes, classifier, coloration, signature, outFileName, opt):
   import Image, ImageColor
   zoom = 2
   steps = classifier(matrix)
   colors = coloration(0, 1., steps, get_color_html)
-  h = len(nodes) * zoom
+  l = len(nodes)
+  h = l * zoom
 
   image = Image.new("RGBA", (h, h))
   for i, n in enumerate(nodes):
-    for j in xrange(len(nodes)):
+    for j in xrange(l):
       cls, c = get_color(matrix[(i, j)], steps, colors)
-      for k1 in range(zoom) :
-        for k2 in range(zoom) :
+      for k1 in xrange(zoom) :
+        for k2 in xrange(zoom) :
           rgba = ImageColor.getcolor(c, "RGBA")
           image.putpixel((i*zoom+k1, j*zoom+k2), rgba) 
   image.save(f,"png")
 
-def pjson(f, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, outFileName, opt):
+def pjson(f, names, matrix, nodes, classifier, coloration, signature, outFileName, opt):
   pngName = getFileName(outFileName, "png")
   f2 = open(pngName, 'w')
-  ppng(f2, names, matrix, nodes, separators, classifier, coloration, option_projection, signature, pngName, opt)
+  ppng(f2, names, matrix, nodes, classifier, coloration, signature, pngName, opt)
   
   steps = classifier(matrix)
   colors = coloration(0, 1., steps, get_color_html)
@@ -346,7 +353,7 @@ def init_groupes(matrix):
   return groupes
 
 
-def iteration_linkage(matrix, groupes, dist):
+def iteration_linkage2(matrix, groupes, dist):
   min_dist = min((dist(matrix, g1, g2), i1, i2) 
                       for i1, g1 in enumerate(groupes)
                       for i2, g2 in enumerate(groupes)
@@ -354,11 +361,19 @@ def iteration_linkage(matrix, groupes, dist):
                 )
   return min_dist
 
+def iteration_linkage(matrix, groupes, dist) :
+  res = []
+  for i1, g1 in enumerate(groupes) :
+    for i2, g2 in enumerate(groupes) :
+      if i2 > i1:
+        d = dist(matrix,g1,g2)
+        res.append((d, i1, i2))
+ #       res.append((d, i2, i1))
+  return min(res)
 
 def linkage(matrix, dist):
   groupes = init_groupes(matrix)
   couples = []
-   
   while len(groupes) > 1:
     d, i1, i2 = iteration_linkage(matrix, groupes, dist)
     g = sorted(groupes[i1] + groupes[i2])
@@ -369,19 +384,18 @@ def linkage(matrix, dist):
   return couples
 
 def dmin(matrix, g1, g2):
-    return min(matrix[(i, j)] for i in g1 for j in g2)
+  return min(matrix[(i, j)] for i in g1 for j in g2)
             
 def dmax(matrix, g1, g2):
-    return max(matrix[(i, j)] for i in g1 for j in g2)
+  return max(matrix[(i, j)] for i in g1 for j in g2)
 
 def davg(matrix, g1, g2):
-    return avg(matrix[(i, j)] for i in g1 for j in g2)
-
+  return avg(matrix[(i, j)] for i in g1 for j in g2)
 
 def getFileName(inFile, mode, outFile='default') :
   if outFile == "default" :
-    return os.path.splitext(inFile)[0] + "." + mode
-  return os.path.splitext(outFile)[0] + "." + mode
+    return '%s.%s'%(os.path.splitext(inFile)[0],mode)
+  return '%s.%s'%(os.path.splitext(outFile)[0],mode)
 
 def main(options):
     #raise SystemExit(0)
@@ -416,8 +430,8 @@ def main(options):
 ###############################
 #   OPTION : normalisation -n
 ###############################
-#    normedMatrix = normalize_matrix(sortedMatrix,sortedNodes)
-    if options.normalize : matrix = normalize_matrix(matrix,sortedNodes)
+    if options.normalize : 
+      matrix = normalize_matrix(matrix,sortedNodes)
 
 ###############################
 #   OPTION : output mode -m
@@ -428,7 +442,7 @@ def main(options):
 
     fname = "p%s"%(options.mode)
     printer = eval(fname)
-    printer(f, names, matrix, sortedNodes, separators, classifier, coloration, options.projection, signature, outFile, options)
+    printer(f, names, matrix, sortedNodes, classifier, coloration, signature, outFile, options)
 
 ################################
 #   OPTION : verbose -q

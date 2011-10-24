@@ -4,19 +4,15 @@
 #fichier= "Tblocs.txt"
 
 def makeHTML(fichier,lesBlocs):
-
     Fh= open(fichier,"r")
     contenu= ""
     buff= Fh.readline()
     while buff:
         contenu += buff
         buff= Fh.readline()
-
     Fh.close()
-
     Fh= open("./out.html",'w')
     Fh.write("<html><head><style>div {border: 1px solid; margin: 3px;}</style></head><body>\n")
-
     # lesBlocs= [(level,debut,fin)]
     debuts= []
     fins= []
@@ -56,25 +52,21 @@ def makeHTML(fichier,lesBlocs):
     print fins
     print new
 
-
 def getLevel(ligne):
-
     indentChars= ['\t',' ']
-
     level= 0
-    # S'il est indente
-    if ligne[0] in indentChars:
-        indentChar= ligne[0]
-        # On compte le nombre
-        level=1
-        while ligne[level] == indentChar:
-            level +=1
-    else:
-        level= 0
-
+    while ligne[level] in indentChars :
+      level += 1
     return level
-
-
+#    if ligne[0] in indentChars:
+#        indentChar= ligne[0]
+#         On compte le nombre
+#        level=1
+#        while ligne[level] == indentChar:
+#            level +=1
+#    else:
+#        level= 0
+#    return level
 
 def trouveBlocs(texteEntree):
     texte= texteEntree.split('\n')
@@ -86,10 +78,8 @@ def trouveBlocs(texteEntree):
     offset= 0
     prevLevel= -1
     for buff in texte:
-
         buff += "\n"
         numLigne +=1
-
         # On cherche le niveau d'indentation
         level= getLevel(buff)
 
@@ -99,9 +89,7 @@ def trouveBlocs(texteEntree):
         if level == prevLevel or buff.strip()== "":
             # On incremente l'offset
             offset += len(buff)
-
             continue
-
 
         # Si la ligne est + indentee, on entre dans un bloc,
         # on ajoute ce bloc dans la pile avec son niveau
@@ -115,14 +103,13 @@ def trouveBlocs(texteEntree):
             prevLevel= level
             continue
 
-
         # Si l'indentation est moins grande,
         # on depile stack jusqu'a retrouver le bon niveau
         if level < prevLevel:
             while stack[-1][0] > level:
                 bloc= stack.pop()
                 lesBlocs.append( (bloc[0],bloc[1],offset) )
-                print "bloc (%i): %i - %i" % (bloc[0],bloc[1],offset)
+#                print "bloc (%i): %i - %i" % (bloc[0],bloc[1],offset)
             prevLevel= level
 
             offset += len(buff)
@@ -131,7 +118,7 @@ def trouveBlocs(texteEntree):
     # A la fin on ferme les blocs restant
     while len(stack) > 0:
         bloc= stack.pop()
-        lesBlocs.append( (bloc[0],bloc[1],offset-1) )
-        print "bloc (%i): %i - %i" % (bloc[0],bloc[1],offset-1)
+        lesBlocs.append((bloc[0],bloc[1],offset-1))
+#        print "bloc (%i): %i - %i" % (bloc[0],bloc[1],offset-1)
 
     return lesBlocs

@@ -1,7 +1,7 @@
+import segmenter
 from iBlocs import *
 
-class Module_ib:
-
+class Module_ib(segmenter.Segmenter):
     def __init__(self, context):
       self._context = context
 

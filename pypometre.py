@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import os, sys
+sys.path.append('./tools/')
+
 import pprint
 from dataStructures import *
 import tool_dataStructures as tds
@@ -8,8 +10,9 @@ from pypometre_optparser import opt_parser_pypometre
 #from optparse import OptionParser
 #import types
 
+
 import time
-#import tool_numpy as tn
+import tool_numpy as tn
 #from munkres import *
 import random
 
@@ -120,13 +123,11 @@ def main(args=sys.argv[1:]):
         name_doc2 = os.path.split(str(document2))[1]
 
 #        matrix = DistMatrix(len(segLst1), len(segLst2))
-        l1 = len(segLst1)
-        l2 = len(segLst2)
 
         ll1 = len(auto_corres1)
         ll2 = len(auto_corres2)
 
-        matrix = LinedMatrix(l1, l2)
+        matrix = LinedMatrix(len(segLst1),len(segLst2))
 
         for x in xrange(ll1) :
           seg1 = segLst1[auto_corres1[x][0]]
@@ -145,13 +146,16 @@ def main(args=sys.argv[1:]):
 
 #            matrix.set(x, y, distance)
 
-#        if(opt_options.verbose) :
-#          tn.matrix2image(matrix,"%s/%s_x_%s.png"%(path_log1,name_doc1,name_doc2))
+        cpt = 0
+        if(opt_options.verbose) :
+          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log1,name_doc1,name_doc2,cpt))
 
         for f in documentDistanceFilters :
+          cpt += 1
 #          print f
           matrix = f(matrix)
-#          if(opt_options.verbose) :
+          if(opt_options.verbose) :
+            tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log1,name_doc1,name_doc2,cpt))
 #            tn.matrix2image(matrix,"%s/%s_x_%s%i.png"%(path_log2,name_doc1,name_doc2,nb))
 
         distance = documentDistance(matrix)

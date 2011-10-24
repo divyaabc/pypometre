@@ -51,15 +51,15 @@ def opt_parser_pypometre():
     help="don't print status messages to stdout")
 
   parser.add_option(
-    "-t", "", dest= "documentFilter", default = ["t","el","s"],
+    "-t", "", dest= "documentFilter", default = ["t","s","el"],
     type = "string", action = "callback", callback = read_list_arg1,
-    help="FILTER applied on each document [default : -t t,el,s] (-t f1,f2 will apply f1 then f2) Values : {t, s, id, el}",
+    help="FILTER applied on each document [default : -t t,s,el] (-t f1,f2 will apply f1 then f2) Values : {t, s, id, el}",
     metavar="FILTER")
 
   parser.add_option(
     "-c", "", dest="segmenter", default = ["nl","1"],
     type = "string", action = "callback", callback = read_list_arg2,
-    help="use de segmenter SEG [default : -c nl:1] Values : {nc:[0-9], nl:[0-9], a}",
+    help="use de segmenter SEG [default : -c nl:1] Values : {nc:[0-9], nl:[0-9], a, ib}",
     metavar="SEG")
 
   parser.add_option(
@@ -68,7 +68,7 @@ def opt_parser_pypometre():
     metavar="SEGDIST")
 
   parser.add_option(
-    "-l", "", dest="documentDistanceFilter", default = ["t","c","t","h","c","t","c","t"],
+    "-l", "", dest="documentDistanceFilter", default = ["t","c","h","c","t"],
     type = "string", action = "callback", callback = read_list_arg1,
     help = "Filters DOCDISTFILTER applied on the segment matrix [default : -l c,t,h,c,t] (-l f1,f2,f1 will apply f1 then f2 then f1) Values : {h|hungarian, t|threshold, c|convolute, hc|hungarian_clean}",
     metavar="DOCDISTFILTER")
