@@ -231,10 +231,13 @@ def phtml(f, names, matrix, nodes, classifier, coloration, signature, outFileNam
       print >>f, '<td valign="top" style="%s">%s</td> '%(style_td[0],"<br/>".join(names[n]))
     print >>f, "<td/></tr></table>"
 
-    signature = eval(signature)
-    print_signature = ""
-    for k,v in signature.iteritems() :
-      print_signature += '<li><strong>%s</strong> : %s</li>'%(str(k),str(v))
+    try :
+      signature = eval(signature)
+      print_signature = ""
+      for k,v in signature.iteritems() :
+        print_signature += '<li><strong>%s</strong> : %s</li>'%(str(k),str(v))
+    except :
+      print_signature = '<p>%s</p>'%(signature)
 
     print >>f, "%s"%(print_signature)
 

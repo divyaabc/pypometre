@@ -3,7 +3,7 @@
 
 import numpy
 import Image
-import scipy.signal
+#import scipy.signal
 
 def squarify(matrix, val_fill) :
   if len(matrix) > len(matrix[0]):
@@ -30,6 +30,6 @@ def matrix2image(matrix, path) :
   a_print = a_print.astype(numpy.uint8)
   Image.fromarray(a_print).save(path)
 
-def matrix2matrix_convolved(matrix,filt) :
-  return scipy.signal.convolve2d(matrix, filt, mode="same", fillvalue=1.)
+#def matrix2matrix_convolved(matrix,filt) :
+#  return scipy.signal.convolve2d(matrix, filt, mode="same", fillvalue=1.)
 

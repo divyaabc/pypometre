@@ -44,7 +44,8 @@ def getMatrixCenter(_n) :
   return f
 
 def main(args=sys.argv[1:]):
-    path_log1 = "./log/documentDistances"
+    path_log = "./log"
+    path_log = "./log/documentDistances"
     path_log2 = "./log/documentDistanceFilters"
 
     parser = opt_parser_pypometre()
@@ -110,6 +111,8 @@ def main(args=sys.argv[1:]):
       auto_corres1 = list_auto_corres[i]
       segLst1 = document1.getSegmentation()
       name_doc1 = os.path.split(str(document1))[1]
+      name_png_doc1 = str(document1).replace('/','#')
+#      name_png_doc1 = name_png_doc1.replace('.','')
       for j in xrange(len_segmented_corpus):
         if j <= i:
           continue
@@ -121,7 +124,14 @@ def main(args=sys.argv[1:]):
         segLst2 = document2.getSegmentation()
         auto_corres2 = list_auto_corres[j]
         name_doc2 = os.path.split(str(document2))[1]
+        name_png_doc2 = str(document2).replace('/','#')
+#        name_png_doc2 = name_png_doc2.replace('.','')
 
+#        print name_doc1
+#        print name_doc2
+#        print name_png_doc1
+#        print name_png_doc2
+#        1/0
 #        matrix = DistMatrix(len(segLst1), len(segLst2))
 
         ll1 = len(auto_corres1)
@@ -148,14 +158,14 @@ def main(args=sys.argv[1:]):
 
         cpt = 0
         if(opt_options.verbose) :
-          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log1,name_doc1,name_doc2,cpt))
+          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log,name_png_doc1,name_png_doc2,cpt))
 
         for f in documentDistanceFilters :
           cpt += 1
 #          print f
           matrix = f(matrix)
-          if(opt_options.verbose) :
-            tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log1,name_doc1,name_doc2,cpt))
+        if(opt_options.verbose) :
+          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log,name_png_doc1,name_png_doc2,cpt))
 #            tn.matrix2image(matrix,"%s/%s_x_%s%i.png"%(path_log2,name_doc1,name_doc2,nb))
 
         distance = documentDistance(matrix)

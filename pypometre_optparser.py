@@ -70,7 +70,7 @@ def opt_parser_pypometre():
   parser.add_option(
     "-l", "", dest="documentDistanceFilter", default = ["t","c","h","c","t"],
     type = "string", action = "callback", callback = read_list_arg1,
-    help = "Filters DOCDISTFILTER applied on the segment matrix [default : -l c,t,h,c,t] (-l f1,f2,f1 will apply f1 then f2 then f1) Values : {h|hungarian, t|threshold, c|convolute, hc|hungarian_clean}",
+    help = "Filters DOCDISTFILTER applied on the segment matrix [default : -l t,c,h,c,t] (-l f1,f2,f1 will apply f1 then f2 then f1) Values : {h|hungarian, t|threshold, c|convolute, hc|hungarian_clean}",
     metavar="DOCDISTFILTER")
 
   parser.add_option(
