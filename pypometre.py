@@ -10,8 +10,6 @@ from pypometre_optparser import opt_parser_pypometre
 #from optparse import OptionParser
 #import types
 
-
-import time
 import tool_numpy as tn
 #from munkres import *
 import random
@@ -45,14 +43,9 @@ def getMatrixCenter(_n) :
 
 def main(args=sys.argv[1:]):
     path_log = "./log"
-    path_log = "./log/documentDistances"
-    path_log2 = "./log/documentDistanceFilters"
-
     parser = opt_parser_pypometre()
-    
     (opt_options, opt_args) = parser.parse_args(args)
     opt_fileout = opt_options.fileout
-
     signature = str(opt_options)
 
     context = {}
@@ -112,7 +105,6 @@ def main(args=sys.argv[1:]):
       segLst1 = document1.getSegmentation()
       name_doc1 = os.path.split(str(document1))[1]
       name_png_doc1 = str(document1).replace('/','#')
-#      name_png_doc1 = name_png_doc1.replace('.','')
       for j in xrange(len_segmented_corpus):
         if j <= i:
           continue
@@ -125,14 +117,6 @@ def main(args=sys.argv[1:]):
         auto_corres2 = list_auto_corres[j]
         name_doc2 = os.path.split(str(document2))[1]
         name_png_doc2 = str(document2).replace('/','#')
-#        name_png_doc2 = name_png_doc2.replace('.','')
-
-#        print name_doc1
-#        print name_doc2
-#        print name_png_doc1
-#        print name_png_doc2
-#        1/0
-#        matrix = DistMatrix(len(segLst1), len(segLst2))
 
         ll1 = len(auto_corres1)
         ll2 = len(auto_corres2)
@@ -158,15 +142,16 @@ def main(args=sys.argv[1:]):
 
         cpt = 0
         if(opt_options.verbose) :
-          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log,name_png_doc1,name_png_doc2,cpt))
+          name_matrix = os.path.join(path_log,"%s_x_%s%i.png"%(name_png_doc1,name_png_doc2,cpt))
+          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),name_matrix)
 
         for f in documentDistanceFilters :
           cpt += 1
-#          print f
           matrix = f(matrix)
         if(opt_options.verbose) :
-          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),"%s/%s_x_%s%i.png"%(path_log,name_png_doc1,name_png_doc2,cpt))
-#            tn.matrix2image(matrix,"%s/%s_x_%s%i.png"%(path_log2,name_doc1,name_doc2,nb))
+          name_matrix = os.path.join(path_log,"%s_x_%s%i.png"%(name_png_doc1,name_png_doc2,cpt))
+          print '>>', name_matrix
+          tn.matrix2image(tn.matrix2numpy(matrix.getMatrix()),name_matrix)
 
         distance = documentDistance(matrix)
         
@@ -191,10 +176,4 @@ def main(args=sys.argv[1:]):
     return print_json
 
 if __name__ == "__main__":
-#    l = [[random.random() for _ in xrange(10)] for _ in xrange(10)]
-#    m = Munkres()
-#    res = m.compute(l)
-#    start = time.clock()
-    main()
-    end = time.clock()
-#    print "[time] %f"%(end-start)
+  main()

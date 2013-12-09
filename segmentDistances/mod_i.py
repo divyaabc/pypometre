@@ -18,6 +18,11 @@ class Module_i(distance.Distance):
     return distance
 
 if __name__ == "__main__":
-  module = Module_information(None)
-  print module.processText("bababababa"*100, "a"*100)
- 
+  module = Module_i(None)
+  for i in xrange(0, 10000000, 1000000):
+    t1  = float(len(zlib.compress('a'*i, zlib.Z_BEST_COMPRESSION)))
+    t2  = float(len(zlib.compress('b'*i, zlib.Z_BEST_COMPRESSION)))
+    tc = float(len(zlib.compress('a'*i + 'b'*i, zlib.Z_BEST_COMPRESSION)))
+    print t1, t2, tc
+
+

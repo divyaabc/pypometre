@@ -4,19 +4,48 @@
 from dataStructures import *
 
 def levenshtein(word1, word2):
-  columns = len(word1) + 1
-  rows = len(word2) + 1
+  lword1 = len(word1)
+  lword2 = len(word2)
+  minl = min(lword1,lword2)
+  maxl = max(lword1,lword2)
 
-  # build first row
+  for i in xrange(minl) :
+    if word1[i] != word2[i] :
+      break
+  else :
+    return maxl-i-1
+
+  word1 = word1[i:]
+  word2 = word2[i:]
+  lword1 -= i
+  lword2 -= i
+  minl -= i
+  maxl -= i
+
+  for j in xrange(1,minl+1) :
+    if word1[-j] != word2[-j] :
+      break
+  else :
+    return maxl-j
+
+  if j != 1 :
+    word1 = word1[:-j+1]
+    word2 = word2[:-j+1]
+    lword1 -= i+j-1
+    lword2 -= i+j-1
+
+  columns = lword1 + 1
+  rows = lword2 + 1
+
   currentRow = [0]
   for column in xrange(1, columns):
     currentRow.append(currentRow[column-1]+1)
 
-  for row in xrange( 1, rows ):
+  for row in xrange(1, rows ):
     previousRow = currentRow
     currentRow = [previousRow[0] + 1]
 
-    for column in xrange( 1, columns ):
+    for column in xrange(1, columns ):
       insertCost = currentRow[column - 1] + 1
       deleteCost = previousRow[column] + 1
 
@@ -26,7 +55,6 @@ def levenshtein(word1, word2):
         replaceCost = previousRow[column-1]
 
       currentRow.append(min(insertCost,deleteCost,replaceCost))
-
   return currentRow[-1]
 
 

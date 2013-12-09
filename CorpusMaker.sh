@@ -9,7 +9,7 @@ then
 	then
 	  cd $i
 	  echo "creating $i.all"
-	  for j in  `find . -name "$2"`
+	  for j in  `find . -regex "$2"`
 	    do
 		  echo "\t adding $j"
 		  cat $j >> ../$i.all

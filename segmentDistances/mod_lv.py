@@ -4,8 +4,8 @@ from StringMatcher import StringMatcher
 
 import sys
 #import PypyLevenshtein
-#sys.path.append('..')
-#import tool_dataStructures as tds
+sys.path.append('..')
+import tool_dataStructures as tds
 
 class Module_lv(distance.Distance):
   def process(self, seg1, seg2):
@@ -15,8 +15,8 @@ class Module_lv(distance.Distance):
     return d
 
   def processText(self, text1, text2):
-#    if(text1 == text2) :
-#      return 0.
+    if(text1 == text2) :
+      return 0.
     String_test = StringMatcher()
     String_test.set_seqs(text1, text2)
     dist = String_test.distance()

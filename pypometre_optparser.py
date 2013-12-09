@@ -64,7 +64,7 @@ def opt_parser_pypometre():
 
   parser.add_option(
     "-s", "", dest="segmentDistance", default = "lv",
-    help='use de distance SEGDIST between segments [default : -s lv] Values : {lv, ie, j, jw, eq, cos}',
+    help='use de distance SEGDIST between segments [default : -s lv] Values : {i, lv, ie, j, jw, eq, cos}',
     metavar="SEGDIST")
 
   parser.add_option(
